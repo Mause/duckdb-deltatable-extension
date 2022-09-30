@@ -30,8 +30,8 @@ fn main() {
     rustc_link_arg("-Wl,--gc-sections");
     rustc_link_arg("-Wl,--gc-sections");
     rustc_link_arg("-dead_strip_dylibs");
-    rustc_link_arg("-Wl,-why_live");
-    rustc_link_arg("_ZN10duckdb_re23RE23Arg12parse_stringEPKcmPv");
+//    rustc_link_arg("-Wl,-why_live");
+//    rustc_link_arg("_ZN10duckdb_re23RE23Arg12parse_stringEPKcmPv");
     // cargo_rustc_flags("-Wl,-fdata-sections");
     rustc_link_arg("-ffunction-sections");
     // rustc_link_arg(&format!("-exported_symbol,_{}_init", name));
