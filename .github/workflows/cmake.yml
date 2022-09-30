@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: recursive
 
-    - run: apt install ninja-build build-essential
+    - run: sudo apt install ninja-build build-essential
 
     - run: make debug
       env:
