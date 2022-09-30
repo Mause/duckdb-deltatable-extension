@@ -3,10 +3,11 @@ cmake_policy(VERSION 3.22)
 set(TARGET_NAME libtest_extension)
 project(${TARGET_NAME} VERSION 0.0.1)
 
-set(EXTENSION_STATIC_BUILD TRUE)
+option(EXTENSION_STATIC_BUILD TRUE)
+set(DUCK_ROOT ${CMAKE_CURRENT_SOURCE_DIR}/duckdb)
 enable_testing()
 
-add_subdirectory(duckdb)
+add_subdirectory(${DUCK_ROOT})
 
 include(FetchContent)
 
@@ -31,5 +32,5 @@ set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${LIB_NAME} test_extension)
 
 add_test(
-  basic ../duckdb/build/debug/duckdb -unsigned -c
-  "load '${CMAKE_CURRENT_SOURCE_DIR}/libtest_extension.duckdb_extension'")
+  basic ${DUCK_ROOT}/build/debug/duckdb -unsigned -c
+  "load '${CMAKE_CURRENT_BINARY_DIR}/libtest_extension.duckdb_extension'")
