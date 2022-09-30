@@ -22,7 +22,7 @@ jobs:
       with:
         submodules: recursive
 
-    - uses: ashutoshvarma/setup-ninja@v1.1
+    - run: apt install ninja-build build-essential
 
     - run: make debug
       env:
