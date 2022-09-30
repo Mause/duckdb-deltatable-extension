@@ -1,1 +1,16 @@
 /target
+CMakeCache.txt
+CMakeFiles
+cargo
+_deps
+build
+.cargo
+cmake_install.cmake
+.ninja_deps
+.ninja_log
+.cmake
+*.so
+*.duckdb_extension
+CTestTestfile.cmake
+DuckDBExports.cmake
+Testing/
