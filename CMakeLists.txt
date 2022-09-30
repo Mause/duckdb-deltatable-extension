@@ -6,6 +6,8 @@ project(${TARGET_NAME} VERSION 0.0.1)
 set(EXTENSION_STATIC_BUILD TRUE)
 enable_testing()
 
+add_subdirectory(duckdb)
+
 include(FetchContent)
 
 FetchContent_Declare(
