@@ -1,0 +1,18 @@
+[package]
+name = "test_extension"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+#deltalake = "0.4.0"
+libc = "0.2.134"
+
+[build-dependencies]
+bindgen = "0.60.1"
+build_script = "0.2.0"
+
+[lib]
+name = "test_extension"
+crate-type = ["cdylib"]      # Creates dynamic lib
