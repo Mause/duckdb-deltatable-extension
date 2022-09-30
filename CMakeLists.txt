@@ -1,6 +1,21 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.22)
+cmake_policy(VERSION 3.22)
 set(TARGET_NAME libtest_extension)
-project(${TARGET_NAME})
+project(${TARGET_NAME} VERSION 0.0.1)
+
+set(EXTENSION_STATIC_BUILD TRUE)
+enable_testing()
+
+include(FetchContent)
+
+FetchContent_Declare(
+        Corrosion
+            GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+                GIT_TAG v0.2.1 # Optionally specify a commit hash, version tag or branch here
+                )
+FetchContent_MakeAvailable(Corrosion)
+
+corrosion_import_crate(MANIFEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/function.cmake)
 
@@ -9,7 +24,13 @@ set_target_properties( mylib PROPERTIES IMPORTED_LOCATION ${CMAKE_CURRENT_SOURCE
 
 set(ALL_SOURCES wrapper.h)
 
+link_directories(../duckdb/build/debug/src)
+
 build_loadable_extension(${TARGET_NAME} ${ALL_SOURCES})
 
-set_target_properties(${TARGET_NAME}_loadable_extension PROPERTIES LINKER_LANGUAGE CXX)
-TARGET_LINK_LIBRARIES(${TARGET_NAME}_loadable_extension mylib)
+set(LIB_NAME ${TARGET_NAME}_loadable_extension)
+
+set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+TARGET_LINK_LIBRARIES(${LIB_NAME} mylib)
+
+add_test(basic ../duckdb/build/debug/duckdb -unsigned -c "load '${CMAKE_CURRENT_SOURCE_DIR}/libtest_extension.duckdb_extension'")

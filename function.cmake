@@ -12,8 +12,6 @@ if(POLICY CMP0054)
   cmake_policy(SET CMP0054 NEW)
 endif()
 
-project(DuckDB)
-
 find_package(Threads REQUIRED)
 
 if (CMAKE_VERSION VERSION_LESS "3.1")
