@@ -28,7 +28,7 @@ pub extern "C" fn replacement(
     data: *mut c_void,
 ) {
     unsafe {
-        duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr());
+        duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
         // let val = duckdb_create_int64(42);
         // duckdb_replacement_scan_add_parameter(info, val);
         // duckdb_destroy_value(val.);
@@ -63,7 +63,11 @@ pub extern "C" fn libtest_extension_version() -> *mut c_char {
 
         duckdb_open(null(), &mut database);
         duckdb_connect(database, &mut connection);
-        duckdb_query(connection, "pragma version".as_ptr(), result);
+        duckdb_query(
+            connection,
+            "pragma version".as_ptr() as *const c_char,
+            result,
+        );
 
         duckdb_result_get_chunk(*result, 0);
 
