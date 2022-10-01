@@ -7,9 +7,12 @@ use crate::duckly::duckdb_connection;
 use crate::duckly::duckdb_database;
 use crate::duckly::duckdb_get_varchar;
 use crate::duckly::duckdb_open;
-use crate::duckly::{duckdb_query, duckdb_replacement_scan_set_function_name, duckdb_replacement_scan_info, duckdb_add_replacement_scan};
 use crate::duckly::duckdb_result_get_chunk;
 use crate::duckly::duckdb_value;
+use crate::duckly::{
+    duckdb_add_replacement_scan, duckdb_query, duckdb_replacement_scan_info,
+    duckdb_replacement_scan_set_function_name,
+};
 
 mod duckly;
 
@@ -17,7 +20,6 @@ mod duckly;
 pub struct Wrapper {
     instance: *const u8,
 }
-
 
 pub extern "C" fn replacement(
     info: duckdb_replacement_scan_info,
@@ -37,7 +39,12 @@ pub extern "C" fn libtest_extension_init(db: *mut u8) {
     unsafe {
         let real_db = Wrapper { instance: db };
 
-        duckdb_add_replacement_scan(real_db.instance as duckdb_database, Some(replacement), null_mut(), None);
+        duckdb_add_replacement_scan(
+            real_db.instance as duckdb_database,
+            Some(replacement),
+            null_mut(),
+            None,
+        );
     }
 }
 

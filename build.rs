@@ -1,9 +1,6 @@
 extern crate bindgen;
 
-use build_script::{
-    cargo_mapping, cargo_rerun_if_changed, cargo_rustc_flags, cargo_rustc_link_lib,
-    cargo_rustc_link_search,
-};
+use build_script::cargo_rerun_if_changed;
 use std::path::PathBuf;
 use std::{env, path::Path};
 
@@ -49,8 +46,4 @@ fn main() {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
-}
-
-fn rustc_link_arg(value: impl Into<String>) {
-    cargo_mapping("rustc-link-arg", value.into());
 }
