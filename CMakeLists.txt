@@ -1,9 +1,15 @@
+# cmake-lint: disable=C0103
+
 cmake_minimum_required(VERSION 3.22)
 cmake_policy(VERSION 3.22)
 set(TARGET_NAME libtest_extension)
 project(${TARGET_NAME} VERSION 0.0.1)
 
 enable_testing()
+
+if(ANDROID)
+  set(Rust_CARGO_TARGET "aarch64-linux-android")
+endif()
 
 include(FetchContent)
 
