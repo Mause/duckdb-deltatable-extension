@@ -32,5 +32,5 @@ set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${LIB_NAME} test_extension)
 
 add_test(
-  basic ${CMAKE_CURRENT_BINARY_DIR}/duckdb -unsigned -c
+  basic ${CMAKE_CURRENT_BINARY_DIR}/../../duckdb -unsigned -c
   "load '${CMAKE_CURRENT_BINARY_DIR}/libtest_extension.duckdb_extension'")
