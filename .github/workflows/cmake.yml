@@ -10,6 +10,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Debug
   GEN: ninja
+  RUSTC_WRAPPER: sccache
 
 jobs:
   build:
@@ -23,6 +24,8 @@ jobs:
       with:
         submodules: recursive
     - uses: hendrikmuhs/ccache-action@v1.2
+      with:
+        variant: sccache
     - run: sudo apt install ninja-build build-essential
 
     - run: make debug
