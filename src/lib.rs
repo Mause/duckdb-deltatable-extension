@@ -5,10 +5,12 @@ use std::ptr::{addr_of_mut, null, null_mut};
 use std::slice;
 
 use crate::duckly::{
-    duckdb_add_replacement_scan, duckdb_connect, duckdb_connection, duckdb_data_chunk_get_vector,
-    duckdb_database, duckdb_get_type_id, duckdb_open, duckdb_query, duckdb_replacement_scan_info,
-    duckdb_replacement_scan_set_function_name, duckdb_result, duckdb_result_get_chunk,
-    duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type, duckdb_vector_get_data,
+    duckdb_add_replacement_scan, duckdb_close, duckdb_connect, duckdb_connection,
+    duckdb_data_chunk_get_vector, duckdb_database, duckdb_destroy_data_chunk,
+    duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id, duckdb_open, duckdb_query,
+    duckdb_replacement_scan_info, duckdb_replacement_scan_set_function_name, duckdb_result,
+    duckdb_result_get_chunk, duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type,
+    duckdb_vector_get_data,
 };
 
 mod duckly;
@@ -90,7 +92,7 @@ pub extern "C" fn libtest_extension_version_v2() -> CString {
             string.as_ptr() as *const c_char,
             addr_of_mut!(result),
         ));
-        let chunk = duckdb_result_get_chunk(result, 0);
+        let mut chunk = duckdb_result_get_chunk(result, 0);
         let vect = duckdb_data_chunk_get_vector(chunk, 0);
 
         let column_type = duckdb_vector_get_column_type(vect);
@@ -98,7 +100,15 @@ pub extern "C" fn libtest_extension_version_v2() -> CString {
 
         let data = duckdb_vector_get_data(vect);
 
-        return convert_string(data, 1);
+        let res = convert_string(data, 1);
+
+        duckdb_destroy_data_chunk(&mut chunk);
+        duckdb_destroy_result(&mut result);
+
+        duckdb_disconnect(&mut connection);
+        duckdb_close(&mut database);
+
+        return res;
     }
 }
 
