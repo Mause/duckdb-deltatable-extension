@@ -7,10 +7,10 @@ use std::slice;
 use crate::duckly::{
     duckdb_add_replacement_scan, duckdb_close, duckdb_connect, duckdb_connection,
     duckdb_data_chunk_get_vector, duckdb_database, duckdb_destroy_data_chunk,
-    duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id, duckdb_open, duckdb_query,
-    duckdb_replacement_scan_info, duckdb_replacement_scan_set_function_name, duckdb_result,
-    duckdb_result_get_chunk, duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type,
-    duckdb_vector_get_data,
+    duckdb_destroy_logical_type, duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id,
+    duckdb_open, duckdb_query, duckdb_replacement_scan_info,
+    duckdb_replacement_scan_set_function_name, duckdb_result, duckdb_result_get_chunk,
+    duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type, duckdb_vector_get_data,
 };
 
 mod duckly;
@@ -95,8 +95,9 @@ pub extern "C" fn libtest_extension_version_v2() -> CString {
         let mut chunk = duckdb_result_get_chunk(result, 0);
         let vect = duckdb_data_chunk_get_vector(chunk, 0);
 
-        let column_type = duckdb_vector_get_column_type(vect);
+        let mut column_type = duckdb_vector_get_column_type(vect);
         assert_eq!(duckdb_get_type_id(column_type), 17);
+        duckdb_destroy_logical_type(addr_of_mut!(column_type));
 
         let data = duckdb_vector_get_data(vect);
 
