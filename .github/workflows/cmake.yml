@@ -36,4 +36,4 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: extension
-        path: ${{github.workspace}}/build/debug/*.duckdb_extension
+        path: ${{github.workspace}}/build/debug/**/*.duckdb_extension
