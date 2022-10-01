@@ -1,5 +1,6 @@
 use std::ffi::c_void;
 use std::mem::size_of;
+use std::os::raw::c_char;
 use std::ptr::{null, null_mut};
 
 use crate::duckly::duckdb_connect;
@@ -11,7 +12,7 @@ use crate::duckly::duckdb_result_get_chunk;
 use crate::duckly::duckdb_value;
 use crate::duckly::{
     duckdb_add_replacement_scan, duckdb_query, duckdb_replacement_scan_info,
-    duckdb_replacement_scan_set_function_name, size_t, u_int8_t,
+    duckdb_replacement_scan_set_function_name,
 };
 
 mod duckly;
@@ -23,7 +24,7 @@ pub struct Wrapper {
 
 pub extern "C" fn replacement(
     info: duckdb_replacement_scan_info,
-    table_name: *const u_int8_t,
+    table_name: *const c_char,
     data: *mut c_void,
 ) {
     unsafe {
@@ -53,7 +54,7 @@ unsafe fn alloc<T: Sized>() -> *mut T {
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_version() -> *mut u_int8_t {
+pub extern "C" fn libtest_extension_version() -> *mut c_char {
     unsafe {
         let mut database: duckdb_database = null_mut();
         let mut connection: duckdb_connection = null_mut();
