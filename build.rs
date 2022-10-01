@@ -31,6 +31,8 @@ fn main() {
         .clang_arg(duckdb_root.join("src/include").to_string_lossy())
         // .allowlist_type("duckdb::DuckDB")
         // .opaque_type("std::.*")
+        .derive_debug(true)
+        .derive_default(true)
         .opaque_type("duckdb_result")
         .opaque_type("duckdb_value")
         // Tell cargo to invalidate the built crate whenever any of the
