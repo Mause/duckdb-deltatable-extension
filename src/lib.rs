@@ -11,10 +11,11 @@ use crate::duckly::{
     duckdb_destroy_logical_type, duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id,
     duckdb_open, duckdb_query, duckdb_replacement_scan_info,
     duckdb_replacement_scan_set_function_name, duckdb_result, duckdb_result_get_chunk,
-    duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type, duckdb_vector_get_data,
+    duckdb_vector_get_column_type, duckdb_vector_get_data,
 };
 
 mod duckly;
+mod error;
 
 #[repr(C)]
 pub struct Wrapper {
@@ -85,10 +86,10 @@ pub extern "C" fn libtest_extension_version_v2() -> *const c_char {
         let mut connection: duckdb_connection = null_mut();
         let mut result = duckdb_result::default();
 
-        check(duckdb_open(null(), &mut database));
-        check(duckdb_connect(database, &mut connection));
+        check!(duckdb_open(null(), &mut database));
+        check!(duckdb_connect(database, &mut connection));
         let string = CString::new("pragma version").expect("bad cString");
-        check(duckdb_query(
+        check!(duckdb_query(
             connection,
             string.as_ptr() as *const c_char,
             addr_of_mut!(result),
@@ -122,10 +123,4 @@ unsafe fn versiony(res: CString) -> *const c_char {
     });
 
     (*VERSION_DATA).as_ptr()
-}
-
-fn check(p0: duckdb_state) {
-    if p0 == duckdb_state_DuckDBError {
-        panic!("Duckdb error");
-    }
 }
