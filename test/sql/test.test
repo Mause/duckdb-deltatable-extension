@@ -4,5 +4,9 @@ force install './build/debug/extension/test_extension/libtest_extension.duckdb_e
 statement ok
 load libtest_extension;
 
-# statement ok
-# select * from read_delta("filename.deltatable");
+query I
+select * from read_delta(3)
+----
+42
+84
+42

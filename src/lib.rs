@@ -1,49 +1,43 @@
-use std::ffi::{c_void, CString};
+#![allow(dead_code)]
+use crate::constants::{DuckDBType, FUNCTION_NAME, STANDARD_VECTOR_SIZE};
 use std::os::raw::c_char;
-use std::ptr::{addr_of_mut, null, null_mut};
+use std::ptr::{addr_of, addr_of_mut, null, null_mut};
 
 use crate::duckly::{
-    duckdb_add_replacement_scan, duckdb_close, duckdb_connect, duckdb_connection,
-    duckdb_data_chunk_get_vector, duckdb_database, duckdb_destroy_data_chunk,
-    duckdb_destroy_logical_type, duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id,
-    duckdb_open, duckdb_query, duckdb_replacement_scan_info,
-    duckdb_replacement_scan_set_function_name, duckdb_result, duckdb_result_get_chunk,
+    duckdb_close, duckdb_connect, duckdb_connection, duckdb_data_chunk_get_vector, duckdb_database,
+    duckdb_destroy_data_chunk, duckdb_destroy_logical_type, duckdb_destroy_result,
+    duckdb_destroy_table_function, duckdb_disconnect, duckdb_get_type_id, duckdb_open,
+    duckdb_query, duckdb_register_table_function, duckdb_result, duckdb_result_get_chunk,
     duckdb_vector_get_column_type, duckdb_vector_get_data,
 };
+use crate::table_function::build_table_function_def;
 
+mod constants;
 mod duckly;
 mod error;
 mod strings;
+mod table_function;
 
 #[repr(C)]
-pub struct Wrapper {
+struct Wrapper {
     instance: *const u8,
-}
-
-/// # Safety
-/// This function should only be called directly by DuckDB
-pub unsafe extern "C" fn replacement(
-    info: duckdb_replacement_scan_info,
-    _table_name: *const c_char,
-    _data: *mut c_void,
-) {
-    duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
-    // let val = duckdb_create_int64(42);
-    // duckdb_replacement_scan_add_parameter(info, val);
-    // duckdb_destroy_value(val.);
 }
 
 #[no_mangle]
 pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
     unsafe {
-        let real_db = Wrapper { instance: db };
+        let wrap = Wrapper { instance: db };
 
-        duckdb_add_replacement_scan(
-            real_db.instance as duckdb_database,
-            Some(replacement),
-            null_mut(),
-            None,
-        );
+        let real_db = addr_of!(wrap) as duckdb_database;
+
+        let mut table_function = build_table_function_def();
+
+        let mut connection: duckdb_connection = null_mut();
+        check!(duckdb_connect(real_db, &mut connection));
+        check!(duckdb_register_table_function(connection, table_function));
+        duckdb_disconnect(&mut connection);
+
+        duckdb_destroy_table_function(&mut table_function);
     }
 }
 
@@ -56,17 +50,16 @@ pub extern "C" fn libtest_extension_version_rust() -> *const c_char {
 
         check!(duckdb_open(null(), &mut database));
         check!(duckdb_connect(database, &mut connection));
-        let string = CString::new("pragma version").expect("bad cString");
         check!(duckdb_query(
             connection,
-            string.as_ptr() as *const c_char,
+            as_string!("pragma version"),
             addr_of_mut!(result),
         ));
         let mut chunk = duckdb_result_get_chunk(result, 0);
         let vect = duckdb_data_chunk_get_vector(chunk, 0);
 
         let mut column_type = duckdb_vector_get_column_type(vect);
-        assert_eq!(duckdb_get_type_id(column_type), 17);
+        assert_eq!(duckdb_get_type_id(column_type), DuckDBType::Varchar as u32);
         duckdb_destroy_logical_type(addr_of_mut!(column_type));
 
         let data = duckdb_vector_get_data(vect);
