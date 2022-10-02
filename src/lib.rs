@@ -34,7 +34,7 @@ pub unsafe extern "C" fn replacement(
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_init_v2(db: *mut u8) {
+pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
     unsafe {
         let real_db = Wrapper { instance: db };
 
@@ -48,7 +48,7 @@ pub extern "C" fn libtest_extension_init_v2(db: *mut u8) {
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_version_v2() -> *const c_char {
+pub extern "C" fn libtest_extension_version_rust() -> *const c_char {
     unsafe {
         let mut database: duckdb_database = null_mut();
         let mut connection: duckdb_connection = null_mut();
