@@ -1,8 +1,9 @@
 use std::ffi::{c_void, CString};
-use std::mem::size_of;
+use std::mem::{size_of, transmute};
 use std::os::raw::c_char;
 use std::ptr::{addr_of_mut, null, null_mut};
 use std::slice;
+use std::sync::Once;
 
 use crate::duckly::{
     duckdb_add_replacement_scan, duckdb_close, duckdb_connect, duckdb_connection,
@@ -26,17 +27,17 @@ struct duckdb_string_t {
     data: *const c_char,
 }
 
-pub extern "C" fn replacement(
+/// # Safety
+/// This function should only be called directly by DuckDB
+pub unsafe extern "C" fn replacement(
     info: duckdb_replacement_scan_info,
     _table_name: *const c_char,
     _data: *mut c_void,
 ) {
-    unsafe {
-        duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
-        // let val = duckdb_create_int64(42);
-        // duckdb_replacement_scan_add_parameter(info, val);
-        // duckdb_destroy_value(val.);
-    }
+    duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
+    // let val = duckdb_create_int64(42);
+    // duckdb_replacement_scan_add_parameter(info, val);
+    // duckdb_destroy_value(val.);
 }
 
 #[no_mangle]
@@ -78,7 +79,7 @@ unsafe fn unsafe_string(ptr: *const u8, len: i32) -> CString {
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_version_v2() -> CString {
+pub extern "C" fn libtest_extension_version_v2() -> *const c_char {
     unsafe {
         let mut database: duckdb_database = null_mut();
         let mut connection: duckdb_connection = null_mut();
@@ -109,8 +110,18 @@ pub extern "C" fn libtest_extension_version_v2() -> CString {
         duckdb_disconnect(&mut connection);
         duckdb_close(&mut database);
 
-        res
+        versiony(res)
     }
+}
+
+static START: Once = Once::new();
+static mut VERSION_DATA: *const CString = 0 as *const CString;
+unsafe fn versiony(res: CString) -> *const c_char {
+    START.call_once(|| {
+        VERSION_DATA = transmute(Box::new(res));
+    });
+
+    (*VERSION_DATA).as_ptr()
 }
 
 fn check(p0: duckdb_state) {
