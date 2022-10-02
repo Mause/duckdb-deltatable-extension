@@ -1,18 +1,17 @@
-use std::ffi::c_void;
-use std::mem::size_of;
+use std::ffi::{c_void, CString};
+use std::mem::{size_of, transmute};
 use std::os::raw::c_char;
-use std::ptr::{null, null_mut};
+use std::ptr::{addr_of_mut, null, null_mut};
+use std::slice;
+use std::sync::Once;
 
-use crate::duckly::duckdb_connect;
-use crate::duckly::duckdb_connection;
-use crate::duckly::duckdb_database;
-use crate::duckly::duckdb_get_varchar;
-use crate::duckly::duckdb_open;
-use crate::duckly::duckdb_result_get_chunk;
-use crate::duckly::duckdb_value;
 use crate::duckly::{
-    duckdb_add_replacement_scan, duckdb_query, duckdb_replacement_scan_info,
-    duckdb_replacement_scan_set_function_name,
+    duckdb_add_replacement_scan, duckdb_close, duckdb_connect, duckdb_connection,
+    duckdb_data_chunk_get_vector, duckdb_database, duckdb_destroy_data_chunk,
+    duckdb_destroy_logical_type, duckdb_destroy_result, duckdb_disconnect, duckdb_get_type_id,
+    duckdb_open, duckdb_query, duckdb_replacement_scan_info,
+    duckdb_replacement_scan_set_function_name, duckdb_result, duckdb_result_get_chunk,
+    duckdb_state, duckdb_state_DuckDBError, duckdb_vector_get_column_type, duckdb_vector_get_data,
 };
 
 mod duckly;
@@ -22,21 +21,27 @@ pub struct Wrapper {
     instance: *const u8,
 }
 
-pub extern "C" fn replacement(
+#[repr(C)]
+struct duckdb_string_t {
+    length: u32,
+    data: *const c_char,
+}
+
+/// # Safety
+/// This function should only be called directly by DuckDB
+pub unsafe extern "C" fn replacement(
     info: duckdb_replacement_scan_info,
-    table_name: *const c_char,
-    data: *mut c_void,
+    _table_name: *const c_char,
+    _data: *mut c_void,
 ) {
-    unsafe {
-        duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
-        // let val = duckdb_create_int64(42);
-        // duckdb_replacement_scan_add_parameter(info, val);
-        // duckdb_destroy_value(val.);
-    }
+    duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
+    // let val = duckdb_create_int64(42);
+    // duckdb_replacement_scan_add_parameter(info, val);
+    // duckdb_destroy_value(val.);
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_init(db: *mut u8) {
+pub extern "C" fn libtest_extension_init_v2(db: *mut u8) {
     unsafe {
         let real_db = Wrapper { instance: db };
 
@@ -49,28 +54,78 @@ pub extern "C" fn libtest_extension_init(db: *mut u8) {
     }
 }
 
-unsafe fn alloc<T: Sized>() -> *mut T {
-    libc::malloc(size_of::<i8>()) as *mut T
+const STRING_INLINE_LENGTH: i32 = 12;
+
+unsafe fn convert_string(val: *const c_void, idx: usize) -> CString {
+    assert!(idx >= 1);
+
+    let base_ptr = val.add((idx - 1) * size_of::<duckdb_string_t>());
+    let length_ptr = base_ptr as *const i32;
+    let length = *length_ptr;
+    if length <= STRING_INLINE_LENGTH {
+        let prefix_ptr = base_ptr.add(size_of::<i32>());
+        unsafe_string(prefix_ptr as *const u8, length)
+    } else {
+        let ptr_ptr = base_ptr.add(size_of::<i32>() * 2) as *const *const u8;
+        let data_ptr = *ptr_ptr;
+        unsafe_string(data_ptr, length)
+    }
+}
+
+unsafe fn unsafe_string(ptr: *const u8, len: i32) -> CString {
+    let slice = slice::from_raw_parts(ptr, len as usize);
+
+    CString::from_vec_unchecked(slice.to_vec())
 }
 
 #[no_mangle]
-pub extern "C" fn libtest_extension_version() -> *mut c_char {
+pub extern "C" fn libtest_extension_version_v2() -> *const c_char {
     unsafe {
         let mut database: duckdb_database = null_mut();
         let mut connection: duckdb_connection = null_mut();
-        let result = alloc();
-        let value = alloc::<duckdb_value>();
+        let mut result = duckdb_result::default();
 
-        duckdb_open(null(), &mut database);
-        duckdb_connect(database, &mut connection);
-        duckdb_query(
+        check(duckdb_open(null(), &mut database));
+        check(duckdb_connect(database, &mut connection));
+        let string = CString::new("pragma version").expect("bad cString");
+        check(duckdb_query(
             connection,
-            "pragma version".as_ptr() as *const c_char,
-            result,
-        );
+            string.as_ptr() as *const c_char,
+            addr_of_mut!(result),
+        ));
+        let mut chunk = duckdb_result_get_chunk(result, 0);
+        let vect = duckdb_data_chunk_get_vector(chunk, 0);
 
-        duckdb_result_get_chunk(*result, 0);
+        let mut column_type = duckdb_vector_get_column_type(vect);
+        assert_eq!(duckdb_get_type_id(column_type), 17);
+        duckdb_destroy_logical_type(addr_of_mut!(column_type));
 
-        return duckdb_get_varchar(value as u64);
+        let data = duckdb_vector_get_data(vect);
+
+        let res = convert_string(data, 1);
+
+        duckdb_destroy_data_chunk(&mut chunk);
+        duckdb_destroy_result(&mut result);
+
+        duckdb_disconnect(&mut connection);
+        duckdb_close(&mut database);
+
+        versiony(res)
+    }
+}
+
+static START: Once = Once::new();
+static mut VERSION_DATA: *const CString = 0 as *const CString;
+unsafe fn versiony(res: CString) -> *const c_char {
+    START.call_once(|| {
+        VERSION_DATA = transmute(Box::new(res));
+    });
+
+    (*VERSION_DATA).as_ptr()
+}
+
+fn check(p0: duckdb_state) {
+    if p0 == duckdb_state_DuckDBError {
+        panic!("Duckdb error");
     }
 }

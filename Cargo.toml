@@ -15,4 +15,4 @@ build_script = "0.2.0"
 
 [lib]
 name = "test_extension"
-crate-type = ["cdylib"]      # Creates dynamic lib
+crate-type = ["staticlib"]

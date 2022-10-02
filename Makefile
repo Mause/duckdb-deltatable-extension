@@ -33,11 +33,11 @@ release: pull
 	cmake $(GENERATOR) $(FORCE_COLOR) -DCMAKE_BUILD_TYPE=RelWithDebInfo ${BUILD_FLAGS} ../../duckdb/CMakeLists.txt -DEXTERNAL_EXTENSION_DIRECTORIES=../../test_extension -B. && \
 	cmake --build . --config Release
 
-test_release:
+test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
-test:
-	./duckdb/build/debug/test/unittest --test-dir . "[sql]"
+test: debug
+	./build/debug/test/unittest --test-dir . "[sql]"
 
 update:
 	git submodule update --remote --merge
