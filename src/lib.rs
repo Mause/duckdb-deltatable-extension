@@ -1,4 +1,4 @@
-use std::ffi::{c_void, CString};
+use std::ffi::c_void;
 use std::os::raw::c_char;
 use std::ptr::{addr_of_mut, null, null_mut};
 
@@ -27,7 +27,7 @@ pub unsafe extern "C" fn replacement(
     _table_name: *const c_char,
     _data: *mut c_void,
 ) {
-    duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
+    duckdb_replacement_scan_set_function_name(info, as_string!("read_delta"));
     // let val = duckdb_create_int64(42);
     // duckdb_replacement_scan_add_parameter(info, val);
     // duckdb_destroy_value(val.);
@@ -56,10 +56,9 @@ pub extern "C" fn libtest_extension_version_rust() -> *const c_char {
 
         check!(duckdb_open(null(), &mut database));
         check!(duckdb_connect(database, &mut connection));
-        let string = CString::new("pragma version").expect("bad cString");
         check!(duckdb_query(
             connection,
-            string.as_ptr() as *const c_char,
+            as_string!("pragma version"),
             addr_of_mut!(result),
         ));
         let mut chunk = duckdb_result_get_chunk(result, 0);
