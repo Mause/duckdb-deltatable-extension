@@ -28,8 +28,8 @@ struct duckdb_string_t {
 
 pub extern "C" fn replacement(
     info: duckdb_replacement_scan_info,
-    table_name: *const c_char,
-    data: *mut c_void,
+    _table_name: *const c_char,
+    _data: *mut c_void,
 ) {
     unsafe {
         duckdb_replacement_scan_set_function_name(info, "read_delta".as_ptr() as *const c_char);
@@ -55,26 +55,26 @@ pub extern "C" fn libtest_extension_init_v2(db: *mut u8) {
 
 const STRING_INLINE_LENGTH: i32 = 12;
 
-unsafe fn convert_string<'f>(val: *const c_void, idx: usize) -> CString {
+unsafe fn convert_string(val: *const c_void, idx: usize) -> CString {
     assert!(idx >= 1);
 
-    let base_ptr = val.offset(((idx - 1) * size_of::<duckdb_string_t>()) as isize);
+    let base_ptr = val.add((idx - 1) * size_of::<duckdb_string_t>());
     let length_ptr = base_ptr as *const i32;
     let length = *length_ptr;
     if length <= STRING_INLINE_LENGTH {
-        let prefix_ptr = base_ptr.offset(size_of::<i32>() as isize);
-        return unsafe_string(prefix_ptr as *const u8, length);
+        let prefix_ptr = base_ptr.add(size_of::<i32>());
+        unsafe_string(prefix_ptr as *const u8, length)
     } else {
-        let ptr_ptr = base_ptr.offset((size_of::<i32>() * 2) as isize) as *const *const u8;
+        let ptr_ptr = base_ptr.add(size_of::<i32>() * 2) as *const *const u8;
         let data_ptr = *ptr_ptr;
-        return unsafe_string(data_ptr, length);
+        unsafe_string(data_ptr, length)
     }
 }
 
-unsafe fn unsafe_string<'f>(ptr: *const u8, len: i32) -> CString {
+unsafe fn unsafe_string(ptr: *const u8, len: i32) -> CString {
     let slice = slice::from_raw_parts(ptr, len as usize);
 
-    return CString::from_vec_unchecked(slice.clone().to_vec());
+    CString::from_vec_unchecked(slice.to_vec())
 }
 
 #[no_mangle]
@@ -109,7 +109,7 @@ pub extern "C" fn libtest_extension_version_v2() -> CString {
         duckdb_disconnect(&mut connection);
         duckdb_close(&mut database);
 
-        return res;
+        res
     }
 }
 
