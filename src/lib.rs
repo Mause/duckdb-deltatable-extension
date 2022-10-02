@@ -17,6 +17,7 @@ mod duckly;
 mod error;
 mod strings;
 mod table_function;
+mod types;
 
 #[repr(C)]
 struct Wrapper {
