@@ -1,0 +1,4 @@
+{"commitInfo":{"delta-rs":"0.4.1","timestamp":1664718057409}}
+{"protocol":{"minReaderVersion":1,"minWriterVersion":1}}
+{"metaData":{"id":"e8e66e6a-0385-45e9-ab53-3ef66e406851","name":null,"description":null,"format":{"provider":"parquet","options":{}},"schemaString":"{\"type\":\"struct\",\"fields\":[{\"name\":\"x\",\"type\":\"long\",\"nullable\":true,\"metadata\":{}},{\"name\":\"other\",\"type\":\"boolean\",\"nullable\":true,\"metadata\":{}}]}","partitionColumns":[],"createdTime":1664718057409,"configuration":{}}}
+{"add":{"path":"0-49ed9201-a421-42a0-b5fe-e2ab1a9f57ee-0.parquet","size":2130,"partitionValues":{},"modificationTime":1664718057,"dataChange":true,"stats":"{\"numRecords\": 3, \"minValues\": {\"x\": 1, \"other\": false}, \"maxValues\": {\"x\": 3, \"other\": true}, \"nullCount\": {\"x\": 0, \"other\": 0}}","tags":null}}

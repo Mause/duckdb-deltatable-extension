@@ -1,7 +1,8 @@
 use crate::duckly::*;
-use crate::{as_string, DuckDBType, FUNCTION_NAME, STANDARD_VECTOR_SIZE};
-use libc::{free, malloc};
-use std::ffi::c_void;
+use crate::{as_string, types, DuckDBType, FUNCTION_NAME, STANDARD_VECTOR_SIZE};
+use deltalake::open_table;
+use libc::{free, malloc, strndup};
+use std::ffi::{c_void, CStr, CString};
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::slice;
@@ -13,6 +14,7 @@ unsafe fn malloc_struct<T>() -> *mut T {
 #[repr(C)]
 struct MyBindDataStruct {
     size: i64,
+    filename: *mut c_char,
 }
 
 #[repr(C)]
@@ -54,6 +56,12 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
     duckdb_data_chunk_set_size(output, final_row as u64);
 }
 
+unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
+    let actual = v as *mut MyBindDataStruct;
+    free((*actual).filename as *mut c_void);
+    free(v);
+}
+
 /// # Safety
 ///
 /// .
@@ -61,17 +69,36 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
-    let mut typ = duckdb_create_logical_type(DuckDBType::Bigint as u32);
-    duckdb_bind_add_result_column(bind_info, as_string!("forty_two"), typ);
-    duckdb_destroy_logical_type(&mut typ);
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .build()
+        .expect("runtime");
 
-    let my_bind_data = malloc_struct::<MyBindDataStruct>();
     let mut param = duckdb_bind_get_parameter(bind_info, 0);
-    let size = duckdb_get_int64(param);
-    (*my_bind_data).size = size;
+    let ptr = duckdb_get_varchar(param);
+    let cstring = CStr::from_ptr(ptr).to_str().unwrap();
     duckdb_destroy_value(&mut param);
 
-    duckdb_bind_set_bind_data(bind_info, my_bind_data as *mut c_void, Some(free));
+    let handle = runtime
+        .block_on(open_table(cstring))
+        .expect("failed to read table");
+    let schema = handle.schema().expect("no schema");
+    for field in schema.get_fields() {
+        let mut typ = duckdb_create_logical_type(types::map_type(field.get_type()) as u32);
+        duckdb_bind_add_result_column(bind_info, as_string!(field.get_name()), typ);
+        duckdb_destroy_logical_type(&mut typ);
+    }
+
+    let my_bind_data = malloc_struct::<MyBindDataStruct>();
+    let string = CString::new(cstring).expect("c string");
+    (*my_bind_data).filename = strndup(string.as_ptr() as *const c_char, cstring.len());
+    (*my_bind_data).size = 3;
+    duckdb_bind_set_bind_data(
+        bind_info,
+        my_bind_data as *mut c_void,
+        Some(drop_my_bind_data_struct),
+    );
+
+    duckdb_free(ptr as *mut c_void);
 }
 
 /// # Safety
@@ -90,7 +117,7 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
 pub unsafe fn build_table_function_def() -> *mut c_void {
     let table_function = duckdb_create_table_function();
     duckdb_table_function_set_name(table_function, FUNCTION_NAME.as_ptr() as *const c_char);
-    let mut logical_type = duckdb_create_logical_type(DuckDBType::Bigint as u32);
+    let mut logical_type = duckdb_create_logical_type(DuckDBType::Varchar as u32);
     duckdb_table_function_add_parameter(table_function, logical_type);
     duckdb_destroy_logical_type(&mut logical_type);
 

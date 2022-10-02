@@ -1,30 +1,30 @@
 pub static STANDARD_VECTOR_SIZE: usize = 1024;
 
 pub static FUNCTION_NAME: &str = "read_delta\0";
-use crate::duckly::{DUCKDB_TYPE_DUCKDB_TYPE_BIGINT, DUCKDB_TYPE_DUCKDB_TYPE_VARCHAR};
+use crate::duckly::*;
 
 pub enum DuckDBType {
-    // Boolean = 1,
-    // Tinyint = 2,
-    // Smallint = 3,
-    // Integer = 4,
+    Boolean = DUCKDB_TYPE_DUCKDB_TYPE_BOOLEAN as isize,
+    Tinyint = DUCKDB_TYPE_DUCKDB_TYPE_TINYINT as isize,
+    Smallint = DUCKDB_TYPE_DUCKDB_TYPE_SMALLINT as isize,
+    Integer = DUCKDB_TYPE_DUCKDB_TYPE_INTEGER as isize,
     Bigint = DUCKDB_TYPE_DUCKDB_TYPE_BIGINT as isize,
     // Utinyint = 6,
     // Usmallint = 7,
     // Uinteger = 8,
     // Ubigint = 9,
-    // Float = 10,
-    // Double = 11,
+    Float = DUCKDB_TYPE_DUCKDB_TYPE_FLOAT as isize,
+    Double = DUCKDB_TYPE_DUCKDB_TYPE_DOUBLE as isize,
     // Timestamp = 12,
-    // Date = 13,
+    Date = DUCKDB_TYPE_DUCKDB_TYPE_DATE as isize,
     // Time = 14,
     // Interval = 15,
     // Hugeint = 16,
     Varchar = DUCKDB_TYPE_DUCKDB_TYPE_VARCHAR as isize,
     // Blob = 18,
-    // Decimal = 19,
+    Decimal = DUCKDB_TYPE_DUCKDB_TYPE_DECIMAL as isize,
     // TimestampS = 20,
-    // TimestampMs = 21,
+    TimestampMs = DUCKDB_TYPE_DUCKDB_TYPE_TIMESTAMP_MS as isize,
     // TimestampNs = 22,
     // Enum = 23,
     // List = 24,

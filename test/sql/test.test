@@ -4,8 +4,14 @@ force install './build/debug/extension/test_extension/libtest_extension.duckdb_e
 statement ok
 load libtest_extension;
 
+query IIIIII
+describe select * from read_delta('./test/simple_table');
+----
+x		BIGINT	YES		NULL	NULL	NULL
+other	BOOLEAN	YES		NULL	NULL	NULL
+
 query I
-select * from read_delta(3)
+select x from read_delta('./test/simple_table')
 ----
 42
 84
