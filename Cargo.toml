@@ -9,6 +9,8 @@ edition = "2021"
 deltalake = { version = "0.4.0", features=[] }
 libc = "0.2.134"
 tokio = { version = "1.21.2", features=['rt'] }
+parquet = "4"
+lazy_static = "1.4.0"
 
 [build-dependencies]
 bindgen = "0.60.1"

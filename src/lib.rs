@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use crate::constants::{DuckDBType, FUNCTION_NAME, STANDARD_VECTOR_SIZE};
+use crate::constants::{DuckDBType, FUNCTION_NAME};
 use std::os::raw::c_char;
 use std::ptr::{addr_of, addr_of_mut, null, null_mut};
 
