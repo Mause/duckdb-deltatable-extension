@@ -1,7 +1,6 @@
 use crate::duckly::*;
 use crate::{as_string, types, DuckDBType, FUNCTION_NAME};
 use deltalake::open_table;
-use libc::{free, strndup};
 use std::ffi::{c_void, CStr, CString};
 use std::fmt::Display;
 use std::fs::File;
@@ -69,6 +68,18 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
                     Field::Long(v) => {
                         assign(output, final_row, idx, *v);
                     }
+                    Field::Str(v) => {
+                        let cs = CString::new(v.as_bytes()).unwrap();
+
+                        let result_vector = duckdb_data_chunk_get_vector(output, idx as u64);
+
+                        duckdb_vector_assign_string_element_len(
+                            result_vector,
+                            final_row as u64,
+                            cs.as_ptr(),
+                            v.as_bytes().len() as u64,
+                        );
+                    }
                     // TODO: support more types
                     _ => panic!("{:?} is unsupported", value),
                 }
@@ -100,8 +111,8 @@ unsafe fn get_column_result_vector<T>(
 
 unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
     let actual = v.cast::<MyBindDataStruct>();
-    free((*actual).filename.cast());
-    free(v);
+    drop(CString::from_raw((*actual).filename.cast()));
+    duckdb_free(v);
 }
 
 /// # Safety
@@ -131,8 +142,7 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     }
 
     let my_bind_data = malloc_struct::<MyBindDataStruct>();
-    let string = CString::new(cstring).expect("c string");
-    (*my_bind_data).filename = strndup(string.as_ptr().cast(), cstring.len());
+    (*my_bind_data).filename = CString::new(cstring).expect("c string").into_raw();
     duckdb_bind_set_bind_data(
         bind_info,
         my_bind_data.cast(),
@@ -152,7 +162,7 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
 
     let mut my_init_data = malloc_struct::<MyInitDataStruct>();
     (*my_init_data).done = false;
-    duckdb_init_set_init_data(info, my_init_data.cast(), Some(free));
+    duckdb_init_set_init_data(info, my_init_data.cast(), Some(duckdb_free));
 }
 
 pub unsafe fn build_table_function_def() -> *mut c_void {

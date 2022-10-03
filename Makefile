@@ -36,7 +36,12 @@ release: pull
 test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
-test: debug
+test/simple_table:
+	pip install pandas deltalake
+	mkdir test/simple_table
+	python3 populate.py
+
+test: debug test/simple_table
 	./build/debug/test/unittest --test-dir . "[sql]"
 
 update:
