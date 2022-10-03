@@ -1093,6 +1093,7 @@ dependencies = [
  "bindgen",
  "build_script",
  "deltalake",
+ "lazy_static",
  "libc",
  "tokio",
 ]

@@ -6,6 +6,7 @@ use std::ffi::{c_void, CStr, CString};
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::slice;
+use tokio::runtime::Runtime;
 
 unsafe fn malloc_struct<T>() -> *mut T {
     duckdb_malloc(size_of::<T>() as u64).cast::<T>()
@@ -69,19 +70,19 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
-    let runtime = tokio::runtime::Builder::new_current_thread()
-        .build()
-        .expect("runtime");
-
     let mut param = duckdb_bind_get_parameter(bind_info, 0);
     let ptr = duckdb_get_varchar(param);
     let cstring = CStr::from_ptr(ptr).to_str().unwrap();
     duckdb_destroy_value(&mut param);
 
-    let handle = runtime
-        .block_on(open_table(cstring))
-        .expect("failed to read table");
-    let schema = handle.schema().expect("no schema");
+    let handle = RUNTIME.block_on(open_table(cstring));
+    if let Err(err) = handle {
+        duckdb_bind_set_error(bind_info, as_string!(err.to_string()));
+        return;
+    }
+
+    let table = handle.unwrap();
+    let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
         let mut typ = duckdb_create_logical_type(types::map_type(field.get_type()) as u32);
         duckdb_bind_add_result_column(bind_info, as_string!(field.get_name()), typ);
@@ -125,4 +126,10 @@ pub unsafe fn build_table_function_def() -> *mut c_void {
     duckdb_table_function_set_init(table_function, Some(read_delta_init));
     duckdb_table_function_set_bind(table_function, Some(read_delta_bind));
     table_function
+}
+
+lazy_static::lazy_static! {
+    static ref RUNTIME: Runtime = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .expect("runtime");
 }
