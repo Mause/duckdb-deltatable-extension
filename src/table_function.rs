@@ -1,14 +1,14 @@
 use crate::duckly::*;
 use crate::{as_string, types, DuckDBType, FUNCTION_NAME};
 use deltalake::open_table;
-use libc::{free, malloc, strndup};
+use libc::{free, strndup};
 use std::ffi::{c_void, CStr, CString};
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::slice;
 
 unsafe fn malloc_struct<T>() -> *mut T {
-    malloc(size_of::<T>()) as *mut T
+    duckdb_malloc(size_of::<T>() as u64).cast::<T>()
 }
 
 #[repr(C)]
@@ -57,8 +57,8 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
 }
 
 unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
-    let actual = v as *mut MyBindDataStruct;
-    free((*actual).filename as *mut c_void);
+    let actual = v.cast::<MyBindDataStruct>();
+    free((*actual).filename.cast());
     free(v);
 }
 
@@ -90,15 +90,15 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
 
     let my_bind_data = malloc_struct::<MyBindDataStruct>();
     let string = CString::new(cstring).expect("c string");
-    (*my_bind_data).filename = strndup(string.as_ptr() as *const c_char, cstring.len());
+    (*my_bind_data).filename = strndup(string.as_ptr().cast(), cstring.len());
     (*my_bind_data).size = 3;
     duckdb_bind_set_bind_data(
         bind_info,
-        my_bind_data as *mut c_void,
+        my_bind_data.cast(),
         Some(drop_my_bind_data_struct),
     );
 
-    duckdb_free(ptr as *mut c_void);
+    duckdb_free(ptr.cast::<c_void>());
 }
 
 /// # Safety
@@ -111,12 +111,12 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
 
     let mut my_init_data = malloc_struct::<MyInitDataStruct>();
     (*my_init_data).pos = 0;
-    duckdb_init_set_init_data(info, my_init_data as *mut c_void, Some(free));
+    duckdb_init_set_init_data(info, my_init_data.cast(), Some(free));
 }
 
 pub unsafe fn build_table_function_def() -> *mut c_void {
     let table_function = duckdb_create_table_function();
-    duckdb_table_function_set_name(table_function, FUNCTION_NAME.as_ptr() as *const c_char);
+    duckdb_table_function_set_name(table_function, FUNCTION_NAME.as_ptr().cast());
     let mut logical_type = duckdb_create_logical_type(DuckDBType::Varchar as u32);
     duckdb_table_function_add_parameter(table_function, logical_type);
     duckdb_destroy_logical_type(&mut logical_type);

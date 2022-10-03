@@ -9,13 +9,13 @@ pub unsafe fn convert_string(val: *const c_void, idx: usize) -> CString {
     assert!(idx >= 1);
 
     let base_ptr = val.add((idx - 1) * size_of::<DuckDBStringT>());
-    let length_ptr = base_ptr as *const i32;
+    let length_ptr = base_ptr.cast::<i32>();
     let length = *length_ptr;
     if length <= STRING_INLINE_LENGTH {
         let prefix_ptr = base_ptr.add(size_of::<i32>());
-        unsafe_string(prefix_ptr as *const u8, length)
+        unsafe_string(prefix_ptr.cast::<u8>(), length)
     } else {
-        let ptr_ptr = base_ptr.add(size_of::<i32>() * 2) as *const *const u8;
+        let ptr_ptr = base_ptr.add(size_of::<i32>() * 2).cast::<*const u8>();
         let data_ptr = *ptr_ptr;
         unsafe_string(data_ptr, length)
     }
