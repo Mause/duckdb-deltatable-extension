@@ -1,5 +1,3 @@
-pub static STANDARD_VECTOR_SIZE: usize = 1024;
-
 pub static FUNCTION_NAME: &str = "read_delta\0";
 use crate::duckly::*;
 

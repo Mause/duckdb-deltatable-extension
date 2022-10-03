@@ -1,5 +1,5 @@
 use crate::duckly::*;
-use crate::{as_string, types, DuckDBType, FUNCTION_NAME, STANDARD_VECTOR_SIZE};
+use crate::{as_string, types, DuckDBType, FUNCTION_NAME};
 use deltalake::open_table;
 use libc::{free, malloc, strndup};
 use std::ffi::{c_void, CStr, CString};
@@ -42,7 +42,7 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
     for (row, item) in result_slice
         .iter_mut()
         .enumerate()
-        .take(STANDARD_VECTOR_SIZE)
+        .take(duckdb_vector_size() as usize)
     {
         if (*init_data).pos >= size {
             break;
