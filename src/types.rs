@@ -5,50 +5,39 @@ pub fn map_type(p0: &SchemaDataType) -> DuckDBType {
     match p0 {
         SchemaDataType::primitive(name) => {
             if name == "string" {
+                //: utf8
                 DuckDBType::Varchar
-            }
-            //: utf8
-            else if name == "long" {
+            } else if name == "long" {
+                // undocumented, i64?
                 DuckDBType::Bigint
-            }
-            //  // undocumented, i64?
-            else if name == "integer" {
+            } else if name == "integer" {
+                //: i32
                 DuckDBType::Integer
-            }
-            //: i32
-            else if name == "short" {
+            } else if name == "short" {
+                //: i16
                 DuckDBType::Smallint
-            }
-            //: i16
-            else if name == "byte" {
+            } else if name == "byte" {
+                //: i8
                 DuckDBType::Tinyint
-            }
-            //: i8
-            else if name == "float" {
+            } else if name == "float" {
+                //: f32
                 DuckDBType::Float
-            }
-            //: f32
-            else if name == "double" {
+            } else if name == "double" {
+                //: f64
                 DuckDBType::Double
-            }
-            //: f64
-            else if name == "boolean" {
+            } else if name == "boolean" {
+                //: bool
                 DuckDBType::Boolean
-            }
-            //: bool
-            else if name == "binary" {
+            } else if name == "binary" {
+                //: a sequence of binary data
                 DuckDBType::Varchar
-            }
-            //: a sequence of binary data
-            else if name == "date" {
+            } else if name == "date" {
+                //: A calendar date, represented as a year-month-day triple without a timezone
                 DuckDBType::Date
-            }
-            //: A calendar date, represented as a year-month-day triple without a timezone
-            else if name == "timestamp" {
+            } else if name == "timestamp" {
+                //: Microsecond precision timestamp without a timezone
                 DuckDBType::TimestampMs
-            }
-            //: Microsecond precision timestamp without a timezone
-            else {
+            } else {
                 panic!("unsupported primitive: {}", name);
             }
         }
