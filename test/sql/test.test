@@ -10,9 +10,9 @@ describe select * from read_delta('./test/simple_table');
 x		BIGINT	YES		NULL	NULL	NULL
 other	BOOLEAN	YES		NULL	NULL	NULL
 
-query I
-select x from read_delta('./test/simple_table')
+query II
+select * from read_delta('./test/simple_table')
 ----
-42
-84
-42
+1	true
+2	false
+3	true

@@ -1095,6 +1095,7 @@ dependencies = [
  "deltalake",
  "lazy_static",
  "libc",
+ "parquet",
  "tokio",
 ]
 
