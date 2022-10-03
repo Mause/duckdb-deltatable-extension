@@ -33,9 +33,13 @@ jobs:
         with:
           variant: sccache
       - name: Build with Cargo
-        run: cargo doc --lib --all-features --document-private-items --target-dir ./_site
+        run: |
+          cargo doc --lib --all-features --document-private-items --target-dir ./_site
+          ls _site
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
+        with:
+          path: ./_site/doc
 
   # Deployment job
   deploy:
