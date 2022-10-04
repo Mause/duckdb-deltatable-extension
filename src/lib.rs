@@ -12,11 +12,13 @@ mod error;
 mod table_function;
 mod types;
 
+/// Equivalent of [`DatabaseData`](https://github.com/duckdb/duckdb/blob/50951241de3d9c06fac5719dcb907eb21163dcab/src/include/duckdb/main/capi_internal.hpp#L27), wraps `duckdb::DuckDB`
 #[repr(C)]
 struct Wrapper {
     instance: *const u8,
 }
 
+/// Init hook for DuckDB, registers all functionality provided by this extension
 #[no_mangle]
 pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
     unsafe {
@@ -35,6 +37,7 @@ pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
     }
 }
 
+/// Version hook for DuckDB, indicates which version of DuckDB this extension was compiled against
 #[no_mangle]
 pub extern "C" fn libtest_extension_version_rust() -> *const c_char {
     unsafe { DuckDB_LibraryVersion() }

@@ -9,10 +9,11 @@ fn main() {
         .join("duckdb")
         .canonicalize()
         .expect("canon");
-    println!("duckdb_root: {:?}", duckdb_root);
+
+    let header = "src/wrapper.h";
 
     // Tell cargo to invalidate the built crate whenever the wrapper changes
-    cargo_rerun_if_changed("wrapper.h");
+    cargo_rerun_if_changed(&header);
 
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
@@ -20,7 +21,7 @@ fn main() {
     let bindings = bindgen::Builder::default()
         // The input header we would like to generate
         // bindings for.
-        .header("wrapper.h")
+        .header(header)
         // .enable_cxx_namespaces()
         // .generate_comments(true)
         // .derive_default(true)

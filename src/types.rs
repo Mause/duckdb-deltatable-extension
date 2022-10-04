@@ -1,6 +1,7 @@
 use crate::DuckDBType;
 use deltalake::SchemaDataType;
 
+/// Maps Deltalake types to DuckDB types
 pub fn map_type(p0: &SchemaDataType) -> DuckDBType {
     match p0 {
         SchemaDataType::primitive(name) => {

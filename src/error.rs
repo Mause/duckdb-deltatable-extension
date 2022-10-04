@@ -1,3 +1,4 @@
+/// Asserts that the given expression returns DuckDBSuccess, else panics and prints the expression
 #[macro_export]
 macro_rules! check {
     ($x:expr) => {
@@ -10,6 +11,7 @@ macro_rules! check {
     };
 }
 
+/// Returns a `*const c_char` pointer to the given string
 #[macro_export]
 macro_rules! as_string {
     ($x:expr) => {
