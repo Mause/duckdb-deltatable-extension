@@ -1,5 +1,5 @@
 statement ok
-force install './build/debug/extension/deltatable/deltatable.duckdb_extension';
+force install './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
 
 statement ok
 load deltatable;
