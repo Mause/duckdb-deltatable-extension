@@ -5,13 +5,13 @@
 
 #include "wrapper.h"
 
-const char* libtest_extension_version_rust(void);
-void libtest_extension_init_rust(void* db);
+const char* deltatable_version_rust(void);
+void deltatable_init_rust(void* db);
 
-DUCKDB_EXTENSION_API const char* libtest_extension_version() {
-    return libtest_extension_version_rust();
+DUCKDB_EXTENSION_API const char* deltatable_version() {
+    return deltatable_version_rust();
 }
 
-DUCKDB_EXTENSION_API void libtest_extension_init(void* db) {
-    libtest_extension_init_rust(db);
+DUCKDB_EXTENSION_API void deltatable_init(void* db) {
+    deltatable_init_rust(db);
 }
