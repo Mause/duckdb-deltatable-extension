@@ -1,8 +1,8 @@
 statement ok
-force install './build/debug/extension/test_extension/libtest_extension.duckdb_extension';
+force install './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
 
 statement ok
-load libtest_extension;
+load deltatable;
 
 query IIIIII
 describe select * from read_delta('./test/simple_table');
