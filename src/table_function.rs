@@ -1,8 +1,8 @@
 use crate::duckly::*;
 use crate::{as_string, types, DuckDBType, FUNCTION_NAME};
 use deltalake::open_table;
+use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
-use std::fmt::Display;
 use std::fs::File;
 use std::mem::size_of;
 use std::os::raw::c_char;
@@ -68,20 +68,50 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
                     Field::Long(v) => {
                         assign(output, final_row, idx, *v);
                     }
+                    Field::Date(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::Float(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::Byte(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::Short(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::UByte(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::UShort(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::UInt(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::ULong(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::Double(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    // Field::Decimal(v) => {
+                    //     assign(output, final_row, idx, duckdb_double_to_hugeint(*v));
+                    // },
+                    Field::TimestampMillis(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::TimestampMicros(v) => {
+                        assign(output, final_row, idx, *v);
+                    }
+                    Field::Bytes(v) => {
+                        set_bytes(output, final_row, idx, v.as_bytes());
+                    }
                     Field::Str(v) => {
-                        let cs = CString::new(v.as_bytes()).unwrap();
-
-                        let result_vector = duckdb_data_chunk_get_vector(output, idx as u64);
-
-                        duckdb_vector_assign_string_element_len(
-                            result_vector,
-                            final_row as u64,
-                            cs.as_ptr(),
-                            v.as_bytes().len() as u64,
-                        );
+                        set_bytes(output, final_row, idx, v.as_bytes());
                     }
                     // TODO: support more types
-                    _ => panic!("{:?} is unsupported", value),
+                    _ => todo!("{}", value),
                 }
             }
             final_row += 1;
@@ -91,12 +121,20 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
     duckdb_data_chunk_set_size(output, final_row as u64);
 }
 
-unsafe fn assign<T: Display + Copy + 'static>(
-    output: *mut c_void,
-    final_row: usize,
-    idx: usize,
-    v: T,
-) {
+unsafe fn set_bytes(output: *mut c_void, final_row: usize, idx: usize, bytes: &[u8]) {
+    let cs = CString::new(bytes).unwrap();
+
+    let result_vector = duckdb_data_chunk_get_vector(output, idx as u64);
+
+    duckdb_vector_assign_string_element_len(
+        result_vector,
+        final_row as u64,
+        cs.as_ptr(),
+        bytes.len() as u64,
+    );
+}
+
+unsafe fn assign<T: 'static>(output: *mut c_void, final_row: usize, idx: usize, v: T) {
     get_column_result_vector::<T>(output, idx)[final_row] = v;
 }
 
