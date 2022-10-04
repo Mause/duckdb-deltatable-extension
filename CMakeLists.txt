@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.22)
 cmake_policy(VERSION 3.22)
-set(TARGET_NAME libtest_extension)
+set(TARGET_NAME deltatable)
 project(${TARGET_NAME} VERSION 0.0.1)
 
 if(ANDROID)
@@ -28,4 +28,4 @@ set(LIB_NAME ${TARGET_NAME}_loadable_extension)
 
 set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${LIB_NAME}
-                      "${CMAKE_CURRENT_BINARY_DIR}/libtest_extension.a")
+                      "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.a")

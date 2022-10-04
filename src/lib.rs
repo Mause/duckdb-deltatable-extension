@@ -20,7 +20,7 @@ struct Wrapper {
 
 /// Init hook for DuckDB, registers all functionality provided by this extension
 #[no_mangle]
-pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
+pub extern "C" fn deltatable_init_rust(db: *mut u8) {
     unsafe {
         let wrap = Wrapper { instance: db };
 
@@ -39,6 +39,6 @@ pub extern "C" fn libtest_extension_init_rust(db: *mut u8) {
 
 /// Version hook for DuckDB, indicates which version of DuckDB this extension was compiled against
 #[no_mangle]
-pub extern "C" fn libtest_extension_version_rust() -> *const c_char {
+pub extern "C" fn deltatable_version_rust() -> *const c_char {
     unsafe { DuckDB_LibraryVersion() }
 }

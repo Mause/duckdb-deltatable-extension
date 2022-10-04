@@ -1,5 +1,5 @@
 [package]
-name = "test_extension"
+name = "duckdb-deltatable"
 version = "0.1.0"
 edition = "2021"
 
@@ -17,5 +17,5 @@ bindgen = "0.60.1"
 build_script = "0.2.0"
 
 [lib]
-name = "test_extension"
+name = "deltatable"
 crate-type = ["staticlib"]
