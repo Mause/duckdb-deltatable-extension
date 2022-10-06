@@ -40,5 +40,5 @@ pub extern "C" fn deltatable_init_rust(db: *mut u8) {
 /// Version hook for DuckDB, indicates which version of DuckDB this extension was compiled against
 #[no_mangle]
 pub extern "C" fn deltatable_version_rust() -> *const c_char {
-    unsafe { DuckDB_LibraryVersion() }
+    unsafe { duckdb_library_version() }
 }
