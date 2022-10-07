@@ -153,6 +153,30 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
     duckdb_free(v);
 }
 
+struct Value {
+    ptr: *mut c_void,
+}
+impl Value {
+    fn from_raw(ptr: u64) -> Self {
+        Self {
+            ptr: ptr as *mut c_void,
+        }
+    }
+}
+
+impl Drop for Value {
+    fn drop(&mut self) {
+        unsafe {
+            duckdb_destroy_value(self.ptr.cast());
+        }
+    }
+}
+impl From<Value> for u64 {
+    fn from(ptr: Value) -> u64 {
+        ptr.ptr as u64
+    }
+}
+
 /// # Safety
 ///
 /// .
@@ -160,10 +184,9 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
-    let mut param = duckdb_bind_get_parameter(bind_info, 0);
-    let ptr = duckdb_get_varchar(param);
+    let param = Value::from_raw(duckdb_bind_get_parameter(bind_info, 0));
+    let ptr = duckdb_get_varchar(u64::from(param));
     let cstring = CStr::from_ptr(ptr).to_str().unwrap();
-    duckdb_destroy_value(&mut param);
 
     let handle = RUNTIME.block_on(open_table(cstring));
     if let Err(err) = handle {
