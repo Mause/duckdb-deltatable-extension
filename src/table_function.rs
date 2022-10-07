@@ -7,10 +7,11 @@ use std::fs::File;
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::ptr::{addr_of_mut, null_mut};
+use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
+use crate::structs::value::Value;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -153,31 +154,6 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
     duckdb_free(v);
 }
 
-struct Value {
-    ptr: *mut duckdb_value,
-}
-impl Value {
-    fn get_varchar(&self) -> CString {
-        unsafe { CString::from_raw(duckdb_get_varchar(self.ptr as u64)) }
-    }
-}
-
-impl Value {
-    pub fn from_raw(ptr: u64) -> Self {
-        Self {
-            ptr: ptr as *mut duckdb_value,
-        }
-    }
-}
-
-impl Drop for Value {
-    fn drop(&mut self) {
-        unsafe {
-            duckdb_destroy_value(addr_of_mut!(self.ptr).cast());
-        }
-    }
-}
-
 /// # Safety
 ///
 /// .
@@ -185,7 +161,7 @@ impl Drop for Value {
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
-    let param = Value::from_raw(duckdb_bind_get_parameter(bind_info, 0));
+    let param = Value::from(duckdb_bind_get_parameter(bind_info, 0));
     let ptr = param.get_varchar();
     let cstring = ptr.to_str().unwrap();
 
