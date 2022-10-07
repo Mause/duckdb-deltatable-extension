@@ -11,6 +11,7 @@ use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
+use crate::structs::value::Value;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -160,10 +161,9 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
-    let mut param = duckdb_bind_get_parameter(bind_info, 0);
-    let ptr = duckdb_get_varchar(param);
-    let cstring = CStr::from_ptr(ptr).to_str().unwrap();
-    duckdb_destroy_value(&mut param);
+    let param = Value::from(duckdb_bind_get_parameter(bind_info, 0));
+    let ptr = param.get_varchar();
+    let cstring = ptr.to_str().unwrap();
 
     let handle = RUNTIME.block_on(open_table(cstring));
     if let Err(err) = handle {
@@ -186,8 +186,6 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
         my_bind_data.cast(),
         Some(drop_my_bind_data_struct),
     );
-
-    duckdb_free(ptr.cast::<c_void>());
 }
 
 /// # Safety

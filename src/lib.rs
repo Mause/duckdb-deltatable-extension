@@ -9,6 +9,7 @@ use crate::table_function::build_table_function_def;
 mod constants;
 mod duckly;
 mod error;
+mod structs;
 mod table_function;
 mod types;
 
