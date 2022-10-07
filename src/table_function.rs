@@ -157,7 +157,13 @@ struct Value {
     ptr: *mut duckdb_value,
 }
 impl Value {
-    fn from_raw(ptr: u64) -> Self {
+    fn get_varchar(&self) -> CString {
+        unsafe { CString::from_raw(duckdb_get_varchar(self.ptr as u64)) }
+    }
+}
+
+impl Value {
+    pub fn from_raw(ptr: u64) -> Self {
         Self {
             ptr: ptr as *mut duckdb_value,
         }
@@ -171,11 +177,6 @@ impl Drop for Value {
         }
     }
 }
-impl From<Value> for u64 {
-    fn from(ptr: Value) -> u64 {
-        ptr.ptr as u64
-    }
-}
 
 /// # Safety
 ///
@@ -185,8 +186,8 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
 
     let param = Value::from_raw(duckdb_bind_get_parameter(bind_info, 0));
-    let ptr = duckdb_get_varchar(u64::from(param));
-    let cstring = CStr::from_ptr(ptr).to_str().unwrap();
+    let ptr = param.get_varchar();
+    let cstring = ptr.to_str().unwrap();
 
     let handle = RUNTIME.block_on(open_table(cstring));
     if let Err(err) = handle {
@@ -209,8 +210,6 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
         my_bind_data.cast(),
         Some(drop_my_bind_data_struct),
     );
-
-    duckdb_free(ptr.cast::<c_void>());
 }
 
 /// # Safety
