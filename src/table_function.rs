@@ -7,7 +7,7 @@ use std::fs::File;
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::ptr::null_mut;
+use std::ptr::{addr_of_mut, null_mut};
 use std::slice;
 use tokio::runtime::Runtime;
 
@@ -154,12 +154,12 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
 }
 
 struct Value {
-    ptr: *mut c_void,
+    ptr: *mut duckdb_value,
 }
 impl Value {
     fn from_raw(ptr: u64) -> Self {
         Self {
-            ptr: ptr as *mut c_void,
+            ptr: ptr as *mut duckdb_value,
         }
     }
 }
@@ -167,7 +167,7 @@ impl Value {
 impl Drop for Value {
     fn drop(&mut self) {
         unsafe {
-            duckdb_destroy_value(self.ptr.cast());
+            duckdb_destroy_value(addr_of_mut!(self.ptr).cast());
         }
     }
 }
