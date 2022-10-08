@@ -4,7 +4,7 @@ use crate::duckly::{
 use std::ffi::c_void;
 use std::os::raw::c_char;
 
-pub struct FunctionInfo(pub(crate) *mut c_void);
+pub struct FunctionInfo(*mut c_void);
 
 impl FunctionInfo {
     pub(crate) fn set_error(&self, p0: *const c_char) {
