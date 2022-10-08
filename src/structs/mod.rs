@@ -1,8 +1,10 @@
-pub mod bind_info;
+mod bind_info;
 mod connection;
-pub mod logical_type;
+mod logical_type;
 mod table_function;
-pub mod value;
+mod value;
 
+pub use crate::structs::bind_info::BindInfo;
 pub use crate::structs::connection::Connection;
+pub use crate::structs::logical_type::LogicalType;
 pub use crate::structs::table_function::TableFunction;

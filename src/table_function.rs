@@ -11,9 +11,7 @@ use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
-use crate::structs::bind_info::BindInfo;
-use crate::structs::logical_type::LogicalType;
-use crate::structs::TableFunction;
+use crate::structs::{BindInfo, LogicalType, TableFunction};
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
