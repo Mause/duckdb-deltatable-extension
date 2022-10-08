@@ -11,7 +11,8 @@ use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
-use crate::structs::value::Value;
+use crate::structs::bind_info::BindInfo;
+use crate::structs::logical_type::LogicalType;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -159,33 +160,30 @@ unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
 /// .
 #[no_mangle]
 unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
-    assert_eq!(duckdb_bind_get_parameter_count(bind_info), 1);
+    let bind_info = BindInfo::from(bind_info);
+    assert_eq!(bind_info.get_parameter_count(), 1);
 
-    let param = Value::from(duckdb_bind_get_parameter(bind_info, 0));
+    let param = bind_info.get_parameter(0);
     let ptr = param.get_varchar();
     let cstring = ptr.to_str().unwrap();
 
     let handle = RUNTIME.block_on(open_table(cstring));
     if let Err(err) = handle {
-        duckdb_bind_set_error(bind_info, as_string!(err.to_string()));
+        bind_info.set_error(as_string!(err.to_string()));
         return;
     }
 
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
-        let mut typ = duckdb_create_logical_type(types::map_type(field.get_type()) as u32);
-        duckdb_bind_add_result_column(bind_info, as_string!(field.get_name()), typ);
-        duckdb_destroy_logical_type(&mut typ);
+        let typ = LogicalType::new(types::map_type(field.get_type()));
+        bind_info.add_result_column(as_string!(field.get_name()), typ);
     }
 
     let my_bind_data = malloc_struct::<MyBindDataStruct>();
     (*my_bind_data).filename = CString::new(cstring).expect("c string").into_raw();
-    duckdb_bind_set_bind_data(
-        bind_info,
-        my_bind_data.cast(),
-        Some(drop_my_bind_data_struct),
-    );
+
+    bind_info.set_bind_data(my_bind_data.cast(), Some(drop_my_bind_data_struct));
 }
 
 /// # Safety
