@@ -169,7 +169,7 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
 
     let handle = RUNTIME.block_on(open_table(cstring));
     if let Err(err) = handle {
-        bind_info.set_error(as_string!(err.to_string()));
+        bind_info.set_error(&err.to_string());
         return;
     }
 
@@ -177,7 +177,7 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
         let typ = LogicalType::new(types::map_type(field.get_type()));
-        bind_info.add_result_column(as_string!(field.get_name()), typ);
+        bind_info.add_result_column(field.get_name(), typ);
     }
 
     let my_bind_data = malloc_struct::<MyBindDataStruct>();
