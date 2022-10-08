@@ -1,5 +1,5 @@
 use crate::duckly::*;
-use crate::{as_string, types, DuckDBType, FUNCTION_NAME};
+use crate::{as_string, types, DuckDBType};
 use deltalake::open_table;
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
@@ -13,6 +13,7 @@ use tokio::runtime::Runtime;
 
 use crate::structs::bind_info::BindInfo;
 use crate::structs::logical_type::LogicalType;
+use crate::structs::TableFunction;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -199,16 +200,15 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
     duckdb_init_set_init_data(info, my_init_data.cast(), Some(duckdb_free));
 }
 
-pub unsafe fn build_table_function_def() -> *mut c_void {
-    let table_function = duckdb_create_table_function();
-    duckdb_table_function_set_name(table_function, FUNCTION_NAME.as_ptr().cast());
-    let mut logical_type = duckdb_create_logical_type(DuckDBType::Varchar as u32);
-    duckdb_table_function_add_parameter(table_function, logical_type);
-    duckdb_destroy_logical_type(&mut logical_type);
+pub fn build_table_function_def() -> TableFunction {
+    let table_function = TableFunction::new();
+    table_function.set_name("read_delta");
+    let logical_type = LogicalType::new(DuckDBType::Varchar);
+    table_function.add_parameter(&logical_type);
 
-    duckdb_table_function_set_function(table_function, Some(read_delta));
-    duckdb_table_function_set_init(table_function, Some(read_delta_init));
-    duckdb_table_function_set_bind(table_function, Some(read_delta_bind));
+    table_function.set_function(Some(read_delta));
+    table_function.set_init(Some(read_delta_init));
+    table_function.set_bind(Some(read_delta_bind));
     table_function
 }
 

@@ -1,9 +1,10 @@
 #![allow(dead_code)]
-use crate::constants::{DuckDBType, FUNCTION_NAME};
+use crate::constants::DuckDBType;
 use std::os::raw::c_char;
-use std::ptr::{addr_of, null_mut};
+use std::ptr::addr_of;
 
 use crate::duckly::*;
+use crate::structs::Connection;
 use crate::table_function::build_table_function_def;
 
 mod constants;
@@ -22,20 +23,14 @@ struct Wrapper {
 /// Init hook for DuckDB, registers all functionality provided by this extension
 #[no_mangle]
 pub extern "C" fn deltatable_init_rust(db: *mut u8) {
-    unsafe {
-        let wrap = Wrapper { instance: db };
+    let wrap = Wrapper { instance: db };
 
-        let real_db = addr_of!(wrap) as duckdb_database;
+    let real_db = addr_of!(wrap) as duckdb_database;
 
-        let mut table_function = build_table_function_def();
+    let table_function = build_table_function_def();
 
-        let mut connection: duckdb_connection = null_mut();
-        check!(duckdb_connect(real_db, &mut connection));
-        check!(duckdb_register_table_function(connection, table_function));
-        duckdb_disconnect(&mut connection);
-
-        duckdb_destroy_table_function(&mut table_function);
-    }
+    let connection = Connection::new(real_db);
+    connection.register_table_function(table_function);
 }
 
 /// Version hook for DuckDB, indicates which version of DuckDB this extension was compiled against
