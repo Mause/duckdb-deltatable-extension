@@ -32,10 +32,13 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: sccache
+      - run: rustup install nightly
       - name: Build with Cargo
         run: |
-          cargo doc --lib --no-deps --all-features --document-private-items --target-dir ./_site
+          cargo +nightly doc --lib --no-deps --all-features --document-private-items --target-dir ./_site
           ls _site
+        env:
+          RUSTDOCFLAGS: --enable-index-page -Zunstable-options
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
         with:
