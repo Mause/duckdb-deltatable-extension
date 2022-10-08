@@ -18,17 +18,11 @@ impl BindInfo {
             duckdb_bind_add_result_column(self.ptr, as_string!(column_name), column_type.typ);
         }
     }
-}
-
-impl BindInfo {
     pub fn set_error(&self, error: &str) {
         unsafe {
             duckdb_bind_set_error(self.ptr, as_string!(error));
         }
     }
-}
-
-impl BindInfo {
     pub fn set_bind_data(
         &self,
         data: *mut c_void,
@@ -38,9 +32,6 @@ impl BindInfo {
             duckdb_bind_set_bind_data(self.ptr, data, free_function);
         }
     }
-}
-
-impl BindInfo {
     pub fn get_parameter_count(&self) -> u64 {
         unsafe { duckdb_bind_get_parameter_count(self.ptr) }
     }
