@@ -1,4 +1,3 @@
-pub static FUNCTION_NAME: &str = "read_delta\0";
 use crate::duckly::*;
 
 pub enum DuckDBType {
