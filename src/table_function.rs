@@ -11,7 +11,7 @@ use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
-use crate::structs::{BindInfo, LogicalType, TableFunction};
+use crate::structs::{BindInfo, FunctionInfo, LogicalType, TableFunction};
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -34,15 +34,17 @@ struct MyInitDataStruct {
 /// .
 #[no_mangle]
 unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_chunk) {
-    let bind_data = duckdb_function_get_bind_data(info) as *const MyBindDataStruct;
-    let mut init_data = duckdb_function_get_init_data(info).cast::<MyInitDataStruct>();
+    let info = FunctionInfo::from(info);
+
+    let bind_data = duckdb_function_get_bind_data(info.0) as *const MyBindDataStruct;
+    let mut init_data = duckdb_function_get_init_data(info.0).cast::<MyInitDataStruct>();
 
     let filename = CStr::from_ptr((*bind_data).filename);
 
     let table_result = RUNTIME.block_on(open_table(filename.to_str().unwrap()));
 
     if let Err(err) = table_result {
-        duckdb_function_set_error(info, as_string!(err.to_string()));
+        info.set_error(as_string!(err.to_string()));
         return;
     }
 
