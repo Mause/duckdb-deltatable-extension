@@ -1,3 +1,4 @@
+use crate::as_string;
 use crate::duckly::{
     duckdb_bind_add_result_column, duckdb_bind_get_parameter, duckdb_bind_get_parameter_count,
     duckdb_bind_info, duckdb_bind_set_bind_data, duckdb_bind_set_error,
@@ -12,22 +13,16 @@ pub struct BindInfo {
 }
 
 impl BindInfo {
-    pub fn add_result_column(&self, p0: *const c_char, p1: LogicalType) {
+    pub fn add_result_column(&self, column_name: &str, column_type: LogicalType) {
         unsafe {
-            duckdb_bind_add_result_column(self.ptr, p0, p1.typ);
+            duckdb_bind_add_result_column(self.ptr, as_string!(column_name), column_type.typ);
         }
     }
-}
-
-impl BindInfo {
-    pub fn set_error(&self, p0: *const c_char) {
+    pub fn set_error(&self, error: &str) {
         unsafe {
-            duckdb_bind_set_error(self.ptr, p0.cast());
+            duckdb_bind_set_error(self.ptr, as_string!(error));
         }
     }
-}
-
-impl BindInfo {
     pub fn set_bind_data(
         &self,
         data: *mut c_void,
@@ -37,9 +32,6 @@ impl BindInfo {
             duckdb_bind_set_bind_data(self.ptr, data, free_function);
         }
     }
-}
-
-impl BindInfo {
     pub fn get_parameter_count(&self) -> u64 {
         unsafe { duckdb_bind_get_parameter_count(self.ptr) }
     }
