@@ -1,10 +1,10 @@
-use crate::structs::logical_type::LogicalType;
-use duckdb_extension_framework::duckly::{
+use crate::duckly::{
     duckdb_create_table_function, duckdb_destroy_table_function,
     duckdb_table_function_add_parameter, duckdb_table_function_set_bind,
     duckdb_table_function_set_function, duckdb_table_function_set_init,
     duckdb_table_function_set_name,
 };
+use crate::logical_type::LogicalType;
 use std::ffi::{c_void, CString};
 
 pub struct TableFunction {
@@ -63,5 +63,10 @@ impl TableFunction {
             duckdb_table_function_set_name(self.ptr, string.as_ptr());
         }
         self
+    }
+}
+impl Default for TableFunction {
+    fn default() -> Self {
+        Self::new()
     }
 }

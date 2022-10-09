@@ -1,4 +1,4 @@
-use duckdb_extension_framework::duckly::{duckdb_destroy_value, duckdb_get_varchar, duckdb_value};
+use crate::duckly::{duckdb_destroy_value, duckdb_get_varchar, duckdb_value};
 use std::ffi::CString;
 use std::ptr::addr_of_mut;
 
@@ -7,7 +7,7 @@ pub struct Value {
 }
 
 impl Value {
-    pub(crate) fn get_varchar(&self) -> CString {
+    pub fn get_varchar(&self) -> CString {
         unsafe { CString::from_raw(duckdb_get_varchar(self.ptr as u64)) }
     }
 }
