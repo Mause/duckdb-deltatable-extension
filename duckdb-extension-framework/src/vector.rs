@@ -1,7 +1,9 @@
-use crate::duckly::{duckdb_vector_assign_string_element_len, duckdb_vector_get_data};
+use crate::duckly::{
+    duckdb_vector, duckdb_vector_assign_string_element_len, duckdb_vector_get_data,
+};
 use std::ffi::{c_char, c_void};
 
-pub struct Vector(*mut c_void);
+pub struct Vector(duckdb_vector);
 
 impl Vector {
     pub fn get_data(&self) -> *mut c_void {
@@ -9,8 +11,8 @@ impl Vector {
     }
 }
 
-impl From<*mut c_void> for Vector {
-    fn from(ptr: *mut c_void) -> Self {
+impl From<duckdb_vector> for Vector {
+    fn from(ptr: duckdb_vector) -> Self {
         Self(ptr)
     }
 }
