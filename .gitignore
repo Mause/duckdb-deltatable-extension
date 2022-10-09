@@ -14,3 +14,5 @@ cmake_install.cmake
 CTestTestfile.cmake
 DuckDBExports.cmake
 Testing/
+test/simple_table
+
