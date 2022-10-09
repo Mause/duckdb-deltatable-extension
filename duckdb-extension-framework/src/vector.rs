@@ -1,5 +1,5 @@
 use crate::duckly::{
-    duckdb_vector, duckdb_vector_assign_string_element_len, duckdb_vector_get_data,
+    duckdb_vector, duckdb_vector_assign_string_element_len, duckdb_vector_get_data, idx_t,
 };
 use std::ffi::{c_char, c_void};
 
@@ -18,9 +18,21 @@ impl From<duckdb_vector> for Vector {
 }
 
 impl Vector {
+    /// Assigns a string element in the vector at the specified location.
+    ///
+    /// # Arguments
+    ///  * `index` - The row position in the vector to assign the string to
+    ///  * `str` - The string
+    ///  * `str_len` - The length of the string (in bytes)
+    ///
     /// # Safety
     /// .
-    pub unsafe fn assign_string_element_len(&self, p0: u64, p1: *const c_char, p2: u64) {
-        duckdb_vector_assign_string_element_len(self.0, p0, p1, p2);
+    pub unsafe fn assign_string_element_len(
+        &self,
+        index: idx_t,
+        str_: *const c_char,
+        str_len: idx_t,
+    ) {
+        duckdb_vector_assign_string_element_len(self.0, index, str_, str_len);
     }
 }
