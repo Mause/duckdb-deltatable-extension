@@ -1,11 +1,10 @@
-extern crate bindgen;
-
 use build_script::cargo_rerun_if_changed;
 use std::path::PathBuf;
 use std::{env, path::Path};
 
 fn main() {
     let duckdb_root = Path::new(&env::var("CARGO_MANIFEST_DIR").unwrap())
+        .join("..")
         .join("duckdb")
         .canonicalize()
         .expect("canon");

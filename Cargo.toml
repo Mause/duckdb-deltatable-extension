@@ -16,10 +16,6 @@ parquet = "4"
 lazy_static = "1.4.0"
 duckdb-extension-framework = { path = "./duckdb-extension-framework" }
 
-[build-dependencies]
-bindgen = "0.60.1"
-build_script = "0.2.0"
-
 [lib]
 name = "deltatable"
 crate-type = ["staticlib"]

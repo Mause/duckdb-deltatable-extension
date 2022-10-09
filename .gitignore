@@ -15,4 +15,4 @@ CTestTestfile.cmake
 DuckDBExports.cmake
 Testing/
 test/simple_table
-
+duckdb-extension-framework/target

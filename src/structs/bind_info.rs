@@ -1,10 +1,10 @@
 use crate::as_string;
-use crate::duckly::{
+use crate::structs::logical_type::LogicalType;
+use crate::structs::value::Value;
+use duckdb_extension_framework::duckly::{
     duckdb_bind_add_result_column, duckdb_bind_get_parameter, duckdb_bind_get_parameter_count,
     duckdb_bind_info, duckdb_bind_set_bind_data, duckdb_bind_set_error,
 };
-use crate::structs::logical_type::LogicalType;
-use crate::structs::value::Value;
 use std::ffi::c_void;
 use std::os::raw::c_char;
 

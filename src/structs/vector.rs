@@ -1,4 +1,6 @@
-use crate::duckly::{duckdb_vector_assign_string_element_len, duckdb_vector_get_data};
+use duckdb_extension_framework::duckly::{
+    duckdb_vector_assign_string_element_len, duckdb_vector_get_data,
+};
 use std::ffi::{c_char, c_void};
 
 pub struct Vector(*mut c_void);
