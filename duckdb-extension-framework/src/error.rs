@@ -4,7 +4,7 @@ macro_rules! check {
     ($x:expr) => {
         assert_eq!(
             $x,
-            duckdb_extension_framework::duckly::duckdb_state_DuckDBSuccess,
+            $crate::duckly::duckdb_state_DuckDBSuccess,
             "failed call: {}",
             stringify!($x)
         )

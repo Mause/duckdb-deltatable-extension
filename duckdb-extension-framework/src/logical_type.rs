@@ -1,5 +1,5 @@
-use crate::DuckDBType;
-use duckdb_extension_framework::duckly::{duckdb_create_logical_type, duckdb_destroy_logical_type};
+use crate::constants::DuckDBType;
+use crate::duckly::{duckdb_create_logical_type, duckdb_destroy_logical_type};
 use std::ffi::c_void;
 
 #[derive(Debug)]

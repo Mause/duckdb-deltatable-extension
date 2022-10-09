@@ -1,6 +1,11 @@
-use crate::{as_string, types, DuckDBType};
+use crate::{types, DuckDBType};
 use deltalake::open_table;
-use duckdb_extension_framework::duckly::*;
+use duckdb_extension_framework::duckly::{
+    duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info,
+    duckdb_init_get_bind_data, duckdb_init_info, duckdb_init_set_init_data, duckdb_malloc,
+    duckdb_vector_size,
+};
+use duckdb_extension_framework::{BindInfo, DataChunk, FunctionInfo, LogicalType, TableFunction};
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
 use std::fs::File;
@@ -11,7 +16,6 @@ use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
-use crate::structs::{BindInfo, DataChunk, FunctionInfo, LogicalType, TableFunction};
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -45,7 +49,7 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
     let table_result = RUNTIME.block_on(open_table(filename.to_str().unwrap()));
 
     if let Err(err) = table_result {
-        info.set_error(as_string!(err.to_string()));
+        info.set_error(&err.to_string());
         return;
     }
 
