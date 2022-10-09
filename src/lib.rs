@@ -5,7 +5,7 @@ use std::os::raw::c_char;
 use std::ptr::addr_of;
 
 use crate::table_function::build_table_function_def;
-use duckdb_extension_framework::duckly::*;
+use duckdb_extension_framework::duckly::{duckdb_database, duckdb_library_version};
 
 mod table_function;
 mod types;
