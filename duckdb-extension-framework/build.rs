@@ -33,8 +33,6 @@ fn main() {
         // .opaque_type("std::.*")
         .derive_debug(true)
         .derive_default(true)
-        .opaque_type("duckdb_result")
-        .opaque_type("duckdb_value")
         // Tell cargo to invalidate the built crate whenever any of the
         // included header files changed.
         .parse_callbacks(Box::new(bindgen::CargoCallbacks))
