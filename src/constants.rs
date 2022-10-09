@@ -1,4 +1,4 @@
-use crate::duckly::*;
+use duckdb_extension_framework::duckly::*;
 
 pub enum DuckDBType {
     Boolean = DUCKDB_TYPE_DUCKDB_TYPE_BOOLEAN as isize,
