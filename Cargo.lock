@@ -354,11 +354,16 @@ dependencies = [
  "bindgen",
  "build_script",
  "deltalake",
+ "duckdb-extension-framework",
  "lazy_static",
  "libc",
  "parquet",
  "tokio",
 ]
+
+[[package]]
+name = "duckdb-extension-framework"
+version = "0.1.0"
 
 [[package]]
 name = "either"
