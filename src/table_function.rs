@@ -1,6 +1,6 @@
-use crate::duckly::*;
 use crate::{as_string, types, DuckDBType};
 use deltalake::open_table;
+use duckdb_extension_framework::duckly::*;
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
 use std::fs::File;

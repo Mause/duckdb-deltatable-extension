@@ -1,4 +1,4 @@
-use crate::duckly::{duckdb_destroy_value, duckdb_get_varchar, duckdb_value};
+use duckdb_extension_framework::duckly::{duckdb_destroy_value, duckdb_get_varchar, duckdb_value};
 use std::ffi::CString;
 use std::ptr::addr_of_mut;
 

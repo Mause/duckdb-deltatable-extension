@@ -1,5 +1,7 @@
-use crate::duckly::{duckdb_data_chunk_get_vector, duckdb_data_chunk_set_size};
 use crate::structs::vector::Vector;
+use duckdb_extension_framework::duckly::{
+    duckdb_data_chunk_get_vector, duckdb_data_chunk_set_size,
+};
 use std::ffi::c_void;
 
 pub struct DataChunk {

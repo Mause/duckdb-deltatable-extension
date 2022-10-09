@@ -1,4 +1,4 @@
-use crate::duckly::{
+use duckdb_extension_framework::duckly::{
     duckdb_function_get_bind_data, duckdb_function_get_init_data, duckdb_function_set_error,
 };
 use std::ffi::c_void;

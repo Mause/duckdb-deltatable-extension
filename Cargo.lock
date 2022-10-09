@@ -351,8 +351,6 @@ dependencies = [
 name = "duckdb-deltatable"
 version = "0.1.0"
 dependencies = [
- "bindgen",
- "build_script",
  "deltalake",
  "duckdb-extension-framework",
  "lazy_static",
@@ -364,6 +362,10 @@ dependencies = [
 [[package]]
 name = "duckdb-extension-framework"
 version = "0.1.0"
+dependencies = [
+ "bindgen",
+ "build_script",
+]
 
 [[package]]
 name = "either"

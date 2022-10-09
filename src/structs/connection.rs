@@ -1,9 +1,9 @@
 use crate::check;
-use crate::duckly::{
+use crate::structs::table_function::TableFunction;
+use duckdb_extension_framework::duckly::{
     duckdb_connect, duckdb_connection, duckdb_database, duckdb_disconnect,
     duckdb_register_table_function,
 };
-use crate::structs::table_function::TableFunction;
 use std::ptr::null_mut;
 
 pub struct Connection {
