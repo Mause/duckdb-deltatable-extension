@@ -1,14 +1,11 @@
 /// Asserts that the given expression returns DuckDBSuccess, else panics and prints the expression
 #[macro_export]
 macro_rules! check {
-    ($x:expr) => {
-        assert_eq!(
-            $x,
-            $crate::duckly::duckdb_state_DuckDBSuccess,
-            "failed call: {}",
-            stringify!($x)
-        )
-    };
+    ($x:expr) => {{
+        if ($x != $crate::duckly::duckdb_state_DuckDBSuccess) {
+            Err(format!("failed call: {}", stringify!($x)))?;
+        }
+    }};
 }
 
 /// Returns a `*const c_char` pointer to the given string
