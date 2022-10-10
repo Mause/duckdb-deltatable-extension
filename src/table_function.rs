@@ -1,18 +1,18 @@
 use crate::{types, DuckDBType};
 use deltalake::open_table;
 use duckdb_extension_framework::duckly::{
-    duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info,
-    duckdb_init_get_bind_data, duckdb_init_info, duckdb_init_set_init_data, duckdb_malloc,
-    duckdb_vector_size,
+    duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
+    duckdb_malloc, duckdb_vector_size,
 };
-use duckdb_extension_framework::{BindInfo, DataChunk, FunctionInfo, LogicalType, TableFunction};
+use duckdb_extension_framework::{
+    BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
+};
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
 use std::fs::File;
 use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::ptr::null_mut;
 use std::slice;
 use tokio::runtime::Runtime;
 
@@ -189,12 +189,11 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
 /// .
 #[no_mangle]
 unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
-    assert!(!duckdb_init_get_bind_data(info).is_null());
-    assert_eq!(duckdb_init_get_bind_data(null_mut()), null_mut());
+    let info = InitInfo::from(info);
 
     let mut my_init_data = malloc_struct::<MyInitDataStruct>();
     (*my_init_data).done = false;
-    duckdb_init_set_init_data(info, my_init_data.cast(), Some(duckdb_free));
+    info.set_init_data(my_init_data.cast(), Some(duckdb_free));
 }
 
 pub fn build_table_function_def() -> TableFunction {
