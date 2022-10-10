@@ -15,7 +15,7 @@ impl DataChunk {
     ///
     /// # Arguments
     /// - `types`: An array of types of the data chunk.
-    pub fn new(types: &[LogicalType]) -> Self {
+    pub fn new(types: Vec<LogicalType>) -> Self {
         let types: Vec<duckdb_logical_type> = types.iter().map(|x| x.typ).collect();
         let mut types = types.into_boxed_slice();
 
@@ -53,5 +53,21 @@ impl Drop for DataChunk {
         if self.owned {
             unsafe { duckdb_destroy_data_chunk(&mut self.ptr) };
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::{DataChunk, LogicalType};
+
+    #[test]
+    fn test_things() {
+        let dc = DataChunk::new(vec![LogicalType::new(
+            crate::constants::DuckDBType::Integer,
+        )]);
+
+        assert_eq!(dc.get_column_count(), 1);
+
+        drop(dc);
     }
 }

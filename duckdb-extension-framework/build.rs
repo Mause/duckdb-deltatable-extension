@@ -14,6 +14,12 @@ fn main() {
     // Tell cargo to invalidate the built crate whenever the wrapper changes
     cargo_rerun_if_changed(&header);
 
+    #[cfg(test)]
+    {
+        use build_script::cargo_rustc_link_lib;
+        cargo_rustc_link_lib("duckdb");
+    }
+
     // The bindgen::Builder is the main entry point
     // to bindgen, and lets you build up options for
     // the resulting bindings.
