@@ -29,7 +29,6 @@ impl Vector {
     ///  * `str_len` - The length of the string (in bytes)
     ///
     /// # Safety
-    /// .
     pub unsafe fn assign_string_element_len(
         &self,
         index: idx_t,
@@ -45,10 +44,7 @@ impl Vector {
     ///  * `index` - The row position in the vector to assign the string to
     ///  * `str` - The null-terminated string"]
     ///
-    ///     #[doc = "Assigns a string element in the vector at the specified location."]
-    ///
     /// # Safety
-    /// .
     pub unsafe fn assign_string_element(&self, index: idx_t, str_: *const c_char) {
         duckdb_vector_assign_string_element(self.0, index, str_);
     }
