@@ -1,33 +1,24 @@
 #![allow(dead_code)]
 use duckdb_extension_framework::constants::DuckDBType;
-use duckdb_extension_framework::Connection;
-use std::os::raw::c_char;
-use std::ptr::addr_of;
+use duckdb_extension_framework::Database;
+use std::ffi::{c_char, c_void};
 
 use crate::table_function::build_table_function_def;
-use duckdb_extension_framework::duckly::{duckdb_database, duckdb_library_version};
+use duckdb_extension_framework::duckly::duckdb_library_version;
 
 mod table_function;
 mod types;
-
-/// Equivalent of [`DatabaseData`](https://github.com/duckdb/duckdb/blob/50951241de3d9c06fac5719dcb907eb21163dcab/src/include/duckdb/main/capi_internal.hpp#L27), wraps `duckdb::DuckDB`
-#[repr(C)]
-struct Wrapper {
-    instance: *const u8,
-}
 
 /// Init hook for DuckDB, registers all functionality provided by this extension
 /// # Safety
 /// .
 #[no_mangle]
-pub unsafe extern "C" fn deltatable_init_rust(db: *mut u8) {
-    let wrap = Wrapper { instance: db };
-
-    let real_db = addr_of!(wrap) as duckdb_database;
+pub unsafe extern "C" fn deltatable_init_rust(db: *mut c_void) {
+    let db = Database::from_cpp_duckdb(db);
 
     let table_function = build_table_function_def();
 
-    let connection = Connection::new(real_db);
+    let connection = db.connect();
     connection.register_table_function(table_function);
 }
 
