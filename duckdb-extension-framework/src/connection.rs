@@ -12,10 +12,14 @@ impl From<duckdb_connection> for Connection {
 }
 
 impl Connection {
-    pub fn register_table_function(&self, table_function: TableFunction) {
+    pub fn register_table_function(
+        &self,
+        table_function: TableFunction,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         unsafe {
             check!(duckdb_register_table_function(self.ptr, table_function.ptr));
         }
+        Ok(())
     }
 }
 

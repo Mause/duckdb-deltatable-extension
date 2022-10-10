@@ -22,9 +22,9 @@ impl Database {
     }
 
     /// # Safety
-    pub unsafe fn connect(&self) -> Connection {
+    pub unsafe fn connect(&self) -> Result<Connection, Box<dyn std::error::Error>> {
         let mut connection: duckdb_connection = null_mut();
         check!(duckdb_connect(self.ptr(), &mut connection));
-        Connection::from(connection)
+        Ok(Connection::from(connection))
     }
 }
