@@ -66,67 +66,77 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
 
         for row in reader {
             for (col_idx, (_key, value)) in row.get_column_iter().enumerate() {
-                match value {
-                    Field::Int(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Bool(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Long(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Date(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Float(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Byte(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Short(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::UByte(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::UShort(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::UInt(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::ULong(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Double(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    // Field::Decimal(v) => {
-                    //     assign(&output, row_row, idx, duckdb_double_to_hugeint(*v));
-                    // },
-                    Field::TimestampMillis(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::TimestampMicros(v) => {
-                        assign(&output, row_idx, col_idx, *v);
-                    }
-                    Field::Bytes(v) => {
-                        set_bytes(&output, row_idx, col_idx, v.as_bytes());
-                    }
-                    Field::Str(v) => {
-                        set_bytes(&output, row_idx, col_idx, v.as_bytes());
-                    }
-                    // TODO: support more types
-                    _ => todo!("{}", value),
-                }
+                populate_column(value, &output, row_idx, col_idx);
             }
             row_idx += 1;
+
+            assert!(
+                row_idx < duckdb_vector_size().try_into().unwrap(),
+                "overflowed vector: {}",
+                row_idx
+            );
         }
     }
     (*init_data).done = true;
     output.set_size(row_idx as u64);
+}
+
+unsafe fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: usize) {
+    match value {
+        Field::Int(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Bool(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Long(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Date(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Float(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Byte(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Short(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::UByte(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::UShort(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::UInt(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::ULong(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Double(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        // Field::Decimal(v) => {
+        //     assign(&output, row_row, idx, duckdb_double_to_hugeint(*v));
+        // },
+        Field::TimestampMillis(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::TimestampMicros(v) => {
+            assign(output, row_idx, col_idx, *v);
+        }
+        Field::Bytes(v) => {
+            set_bytes(output, row_idx, col_idx, v.as_bytes());
+        }
+        Field::Str(v) => {
+            set_bytes(output, row_idx, col_idx, v.as_bytes());
+        }
+        // TODO: support more types
+        _ => todo!("{}", value),
+    }
 }
 
 unsafe fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
