@@ -8,12 +8,11 @@ use crate::{LogicalType, Vector};
 pub struct DataChunk(duckdb_data_chunk);
 
 impl DataChunk {
-    #[doc = "Creates an empty DataChunk with the specified set of types."]
-    #[doc = ""]
-    #[doc = " types: An array of types of the data chunk."]
-    #[doc = " column_count: The number of columns."]
-    #[doc = " returns: The data chunk."]
-    pub fn duckdb_create_data_chunk(types: &[LogicalType]) -> Self {
+    /// Creates an empty DataChunk with the specified set of types.
+    ///
+    /// # Arguments
+    /// - `types`: An array of types of the data chunk.
+    pub fn new(types: &[LogicalType]) -> Self {
         let types: Vec<duckdb_logical_type> = types.iter().map(|x| x.typ).collect();
         let mut types = types.into_boxed_slice();
 
