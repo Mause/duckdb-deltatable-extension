@@ -10,23 +10,21 @@ struct Wrapper {
     instance: *const c_void,
 }
 
-pub struct Database {
-    db: duckdb_database,
-}
+pub struct Database(Wrapper);
 
 impl Database {
     pub fn from_cpp_duckdb(ptr: *mut c_void) -> Self {
-        let wrap = Wrapper { instance: ptr };
+        Self(Wrapper { instance: ptr })
+    }
 
-        Self {
-            db: addr_of!(wrap) as duckdb_database,
-        }
+    fn ptr(&self) -> duckdb_database {
+        addr_of!(self.0) as duckdb_database
     }
 
     /// # Safety
     pub unsafe fn connect(&self) -> Connection {
         let mut connection: duckdb_connection = null_mut();
-        check!(duckdb_connect(self.db, &mut connection));
+        check!(duckdb_connect(self.ptr(), &mut connection));
         Connection::from(connection)
     }
 }
