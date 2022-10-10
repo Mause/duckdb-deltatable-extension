@@ -20,6 +20,7 @@ pull:
 
 clean:
 	rm -rf build
+	cargo clean
 
 debug: pull
 	mkdir -p build/debug && \
