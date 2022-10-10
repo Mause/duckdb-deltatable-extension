@@ -1,10 +1,9 @@
 use crate::constants::DuckDBType;
-use crate::duckly::{duckdb_create_logical_type, duckdb_destroy_logical_type};
-use std::ffi::c_void;
+use crate::duckly::{duckdb_create_logical_type, duckdb_destroy_logical_type, duckdb_logical_type};
 
 #[derive(Debug)]
 pub struct LogicalType {
-    pub(crate) typ: *mut c_void,
+    pub(crate) typ: duckdb_logical_type,
 }
 
 impl LogicalType {
@@ -14,6 +13,12 @@ impl LogicalType {
                 typ: duckdb_create_logical_type(typ as u32),
             }
         }
+    }
+}
+
+impl From<duckdb_logical_type> for LogicalType {
+    fn from(ptr: duckdb_logical_type) -> Self {
+        Self { typ: ptr }
     }
 }
 
