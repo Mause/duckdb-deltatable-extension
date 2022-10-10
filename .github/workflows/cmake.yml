@@ -29,6 +29,7 @@ jobs:
     - run: sudo apt install ninja-build build-essential
 
     - run: make debug
+    - run: cargo test --all
     - run: make test
 
     - run: ls build/debug
