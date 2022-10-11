@@ -1,5 +1,6 @@
 use crate::duckly::*;
 
+#[derive(num_derive::FromPrimitive)]
 pub enum DuckDBType {
     Boolean = DUCKDB_TYPE_DUCKDB_TYPE_BOOLEAN as isize,
     Tinyint = DUCKDB_TYPE_DUCKDB_TYPE_TINYINT as isize,

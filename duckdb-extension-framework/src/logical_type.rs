@@ -1,5 +1,9 @@
 use crate::constants::DuckDBType;
-use crate::duckly::{duckdb_create_logical_type, duckdb_destroy_logical_type, duckdb_logical_type};
+use crate::duckly::{
+    duckdb_create_logical_type, duckdb_destroy_logical_type, duckdb_get_type_id,
+    duckdb_logical_type,
+};
+use num_traits::FromPrimitive;
 
 #[derive(Debug)]
 pub struct LogicalType {
@@ -13,6 +17,11 @@ impl LogicalType {
                 typ: duckdb_create_logical_type(typ as u32),
             }
         }
+    }
+    pub fn type_id(&self) -> DuckDBType {
+        let id = unsafe { duckdb_get_type_id(self.typ) };
+
+        FromPrimitive::from_u32(id).unwrap()
     }
 }
 
