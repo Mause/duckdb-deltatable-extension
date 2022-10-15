@@ -3,9 +3,6 @@ name = "duckdb-deltatable"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-members = ['duckdb-extension-framework']
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -14,7 +11,7 @@ libc = "0.2.135"
 tokio = { version = "1.21.2", features=['rt'] }
 parquet = "4"
 lazy_static = "1.4.0"
-duckdb-extension-framework = { path = "./duckdb-extension-framework" }
+duckdb-extension-framework = "0.1.0"
 
 [lib]
 name = "deltatable"
