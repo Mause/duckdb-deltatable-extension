@@ -4,7 +4,6 @@ CMakeFiles
 cargo
 _deps
 build
-.cargo
 cmake_install.cmake
 .ninja_deps
 .ninja_log
