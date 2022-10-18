@@ -1,0 +1,24 @@
+[package]
+name = "duckdb-cxx"
+version = "0.1.0"
+edition = "2021"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cxx = "1.0.78"
+autocxx = "0.22.4"
+static_assertions = "1.1.0"
+
+[build-dependencies]
+build_script = "0.2.0"
+autocxx-build = "0.22.4"
+miette = { version="4.3", features=["fancy"] }
+cxx-build = "1.0.79"
+
+[lib]
+name = "duckdb_cxx"
+
+[[bin]]
+name = "duckdb_cxx"

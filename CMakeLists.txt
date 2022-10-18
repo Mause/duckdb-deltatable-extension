@@ -10,6 +10,7 @@ if(ANDROID)
 endif()
 
 include(FetchContent)
+include(CheckFunctionExists)
 
 FetchContent_Declare(
   Corrosion
@@ -22,9 +23,20 @@ corrosion_import_crate(MANIFEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml)
 
 set(ALL_SOURCES src/wrapper.h src/wrapper.c)
 
-build_loadable_extension(${TARGET_NAME} ${ALL_SOURCES})
+check_function_exists("build_loadable_extension" invoked_via_duckdb)
 
 set(LIB_NAME ${TARGET_NAME}_loadable_extension)
+
+if(${invoked_via_duckdb})
+  build_loadable_extension(${TARGET_NAME} ${ALL_SOURCES})
+else()
+  include_directories(duckdb/src/include)
+
+  add_library(
+    ${LIB_NAME}
+    ${ALL_SOURCES} duckdb-cxx/src/wrapper.hpp duckdb-cxx/src/wrapper.cpp
+    duckdb-cxx/src/RustCreateFunctionInfo.cpp)
+endif()
 
 set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(${LIB_NAME}
