@@ -361,9 +361,9 @@ dependencies = [
 
 [[package]]
 name = "duckdb-extension-framework"
-version = "0.1.3"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "128d4dd626b1749d7c90965d6a1c2b551342d0d91d356bca4082c2284953a639"
+checksum = "3dbcf648d840dd833bc8670577d74d0ee373ea8a4d8a85d733fb807145966548"
 dependencies = [
  "bindgen",
  "build_script",
