@@ -1,9 +1,5 @@
-//
-// Created by me on 15/10/22.
-//
-
+#include <iostream>
 #include "wrapper.hpp"
-#include "duckdb/parser/parsed_data/create_function_info.hpp"
 
 namespace duckdb {
     std::shared_ptr <duckdb::DuckDB> new_duckdb() {
@@ -17,15 +13,6 @@ namespace duckdb {
     std::shared_ptr <DatabaseInstance> get_instance(const shared_ptr<DuckDB>& duck) {
         return duck->instance;
     }
-
-//    void CreateFunction(DatabaseInstance &di, shared_ptr <CreateFunctionInfo> cfi, ClientContext &context) {
-//        auto & catalog = Catalog::GetCatalog(di);
-//        Connection conn(di);
-//        catalog.CreateFunction(
-//                context,
-//                &cfi
-//                );
-//    }
 
     void set_name(CreateFunctionInfo& cfi, const std::string& name) {
         cfi.name = name;
@@ -43,16 +30,28 @@ namespace duckdb {
         connection->Commit();
     }
 
-    shared_ptr <CreateFunctionInfo> create_function_info() {
-//        return new CreateFunctionInfo();
-        return NULL;
-    }
-
     Catalog& get_catalog(shared_ptr<DatabaseInstance>& database_instance) {
         return database_instance->GetCatalog();
     }
 
     duckdb::ClientContext& get_context(std::shared_ptr<duckdb::Connection>& connection) {
         return *connection->context;
+    }
+}
+
+namespace ext_framework {
+    void FunctionActual(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) {
+    }
+
+    RustCreateFunctionInfo::RustCreateFunctionInfo() : CreateScalarFunctionInfo(
+            duckdb::ScalarFunction("main", {duckdb::LogicalTypeId::VARCHAR}, duckdb::LogicalTypeId::VARCHAR, FunctionActual)
+        ) {}
+
+    std::unique_ptr<duckdb::CreateInfo> RustCreateFunctionInfo::Copy() const {
+        return std::make_unique<RustCreateFunctionInfo>();
+    }
+
+    duckdb::CreateFunctionInfo* create() {
+        return new RustCreateFunctionInfo();
     }
 }

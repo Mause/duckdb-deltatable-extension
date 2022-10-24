@@ -1,4 +1,3 @@
-use build_script;
 use build_script::{cargo_rerun_if_changed, cargo_rustc_link_lib, cargo_rustc_link_search};
 use std::env;
 use std::path::Path;
@@ -15,7 +14,7 @@ fn main() -> miette::Result<()> {
 
     b.include(&duckdb)
         .include(&src)
-        .files(vec!["src/wrapper.cpp", "src/RustCreateFunctionInfo.cpp"])
+        .files(vec!["src/wrapper.cpp"])
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-redundant-move")
         .flag_if_supported("-std=c++14")

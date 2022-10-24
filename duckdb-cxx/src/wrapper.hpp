@@ -2,6 +2,8 @@
 #include <functional>
 #define DUCKDB_BUILD_LOADABLE_EXTENSION
 #include "duckdb.hpp"
+#include "duckdb/parser/parsed_data/create_function_info.hpp"
+#include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 
 namespace duckdb {
     std::shared_ptr<duckdb::DuckDB> new_duckdb();
@@ -17,5 +19,15 @@ namespace duckdb {
     Catalog& get_catalog(shared_ptr<DatabaseInstance>& database_instance);
 
     duckdb::ClientContext& get_context(std::shared_ptr<duckdb::Connection>&);
-    // shared_ptr <ClientContext> get_context(const shared_ptr<Connection>& connection);
+}
+
+namespace ext_framework {
+    class RustCreateFunctionInfo : public duckdb::CreateScalarFunctionInfo {
+    public:
+        DUCKDB_API explicit RustCreateFunctionInfo();
+
+        [[nodiscard]] std::unique_ptr<duckdb::CreateInfo> Copy() const override;
+    };
+
+    duckdb::CreateFunctionInfo* create();
 }

@@ -1,10 +1,15 @@
+#![allow(clippy::needless_lifetimes)]
+#![allow(clippy::upper_case_acronyms)]
+
 use crate::defs::ffi::duckdb::ConfigurationOption;
 use autocxx::prelude::*;
 use cxx::private::VectorElement;
 use cxx::CxxVector;
-use cxx::{type_id, ExternType, SharedPtr};
+use cxx::{type_id, ExternType};
 use std::fmt::Formatter;
 use std::mem::MaybeUninit;
+
+use self::otherffi::CreateFunctionInfo;
 
 pub(crate) struct TaskScheduler {}
 unsafe impl ExternType for TaskScheduler {
@@ -13,7 +18,7 @@ unsafe impl ExternType for TaskScheduler {
 }
 
 include_cpp! {
-    #include "duckdb.hpp"
+    #include "wrapper.hpp"
     generate!("duckdb::DuckDB")
     generate!("duckdb::DBConfig")
     generate!("duckdb::ConfigurationOption")
@@ -25,22 +30,14 @@ include_cpp! {
     generate!("duckdb::CatalogType")
     generate!("duckdb::QueryErrorContext")
     extern_cpp_type!("duckdb::TaskScheduler", crate::TaskScheduler)
-}
-
-include_cpp! {
-    #include "RustCreateFunctionInfo.h"
-    name!(wrapper)
     generate!("ext_framework::RustCreateFunctionInfo")
     generate!("ext_framework::create")
 }
 
-pub(crate) type RustCreateFunctionInfo =
-    crate::defs::wrapper::ext_framework::RustCreateFunctionInfo;
-
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
 
-pub(crate) unsafe fn real_create() -> SharedPtr<RustCreateFunctionInfo> {
-    crate::defs::wrapper::ext_framework::create()
+pub(crate) unsafe fn real_create() -> *mut CreateFunctionInfo {
+    crate::defs::ffi::ext_framework::create()
 }
 
 unsafe impl VectorElement for ConfigurationOption {
@@ -93,8 +90,6 @@ pub mod otherffi {
         pub(crate) type Catalog = crate::defs::ffi::duckdb::Catalog;
         pub(crate) type ClientContext = crate::defs::ffi::duckdb::ClientContext;
 
-        pub(crate) type Function = crate::defs::ffi::duckdb::Function;
-        pub(crate) type DBConfig = crate::defs::ffi::duckdb::DBConfig;
         pub(crate) type Connection;
 
         pub(crate) fn new_duckdb() -> SharedPtr<DuckDB>;

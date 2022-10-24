@@ -7,6 +7,7 @@ use std::{
 };
 
 use crate::table_function::build_table_function_def;
+use duckdb_cxx::load_extension;
 use duckdb_extension_framework::duckly::duckdb_library_version;
 
 mod table_function;
@@ -25,6 +26,9 @@ unsafe fn init(db: *mut c_void) -> Result<(), Box<dyn Error>> {
     let table_function = build_table_function_def();
     let connection = db.connect()?;
     connection.register_table_function(table_function)?;
+
+    load_extension();
+
     Ok(())
 }
 

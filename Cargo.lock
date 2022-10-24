@@ -587,11 +587,13 @@ name = "duckdb-deltatable"
 version = "0.1.0"
 dependencies = [
  "deltalake",
+ "duckdb-cxx",
  "duckdb-extension-framework",
  "lazy_static",
  "libc",
  "parquet",
  "tokio",
+ "trace",
 ]
 
 [[package]]
@@ -1722,6 +1724,17 @@ dependencies = [
  "futures-core",
  "pin-project-lite",
  "tokio",
+]
+
+[[package]]
+name = "trace"
+version = "0.1.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "593f20eabd47262794270bba246594d8e106221a22694a5e4164dc347f0520d3"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
