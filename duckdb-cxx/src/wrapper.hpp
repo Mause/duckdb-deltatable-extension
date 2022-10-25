@@ -29,6 +29,6 @@ namespace ext_framework {
         [[nodiscard]] std::unique_ptr<duckdb::CreateInfo> Copy() const override;
     };
 
-    duckdb::CreateFunctionInfo* create(std::string function_name);
+    duckdb::CreateFunctionInfo* create_function_info(std::string function_name);
     void drop_create_function_info(duckdb::CreateFunctionInfo* ptr);
 }

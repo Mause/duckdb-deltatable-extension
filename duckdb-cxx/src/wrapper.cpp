@@ -51,7 +51,7 @@ namespace ext_framework {
         return std::make_unique<RustCreateFunctionInfo>(this->name);
     }
 
-    duckdb::CreateFunctionInfo *create(std::string name) {
+    duckdb::CreateFunctionInfo *create_function_info(std::string name) {
         return new RustCreateFunctionInfo(std::move(name));
     }
     void drop_create_function_info(duckdb::CreateFunctionInfo * ptr) {

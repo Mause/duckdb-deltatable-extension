@@ -5,7 +5,7 @@ use crate::defs::otherffi::{
     begin_transaction, commit, duckdb_source_id, get_catalog, get_context, get_instance,
     new_connection, new_duckdb,
 };
-use crate::defs::{create, drop_create_function_info, QueryErrorContext};
+use crate::defs::{create_function_info, drop_create_function_info, QueryErrorContext};
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
 
@@ -33,7 +33,7 @@ pub fn load_extension() {
 
         let context = get_context(&mut con);
 
-        let info = create("function_name");
+        let info = create_function_info("function_name");
 
         let_cxx_string!(schema = "main");
 

@@ -31,14 +31,16 @@ include_cpp! {
     generate!("duckdb::QueryErrorContext")
     extern_cpp_type!("duckdb::TaskScheduler", crate::TaskScheduler)
     generate!("ext_framework::RustCreateFunctionInfo")
-    generate!("ext_framework::create")
+    generate!("ext_framework::create_function_info")
     generate!("ext_framework::drop_create_function_info")
 }
 
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
 
-pub(crate) unsafe fn create(function_name: impl ToCppString) -> *mut CreateFunctionInfo {
-    crate::defs::ffi::ext_framework::create(function_name)
+pub(crate) unsafe fn create_function_info(
+    function_name: impl ToCppString,
+) -> *mut CreateFunctionInfo {
+    crate::defs::ffi::ext_framework::create_function_info(function_name)
 }
 pub(crate) unsafe fn drop_create_function_info(ptr: *mut CreateFunctionInfo) {
     crate::defs::ffi::ext_framework::drop_create_function_info(ptr);
