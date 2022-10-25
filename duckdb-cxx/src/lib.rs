@@ -5,7 +5,7 @@ use crate::defs::otherffi::{
     begin_transaction, commit, duckdb_source_id, get_catalog, get_context, get_instance,
     new_connection, new_duckdb,
 };
-use crate::defs::{real_create, QueryErrorContext};
+use crate::defs::{drop_create_function_info, real_create, QueryErrorContext};
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
 
@@ -47,5 +47,7 @@ pub fn load_extension() {
         catalog.CreateFunction1(context, *schema, info);
 
         commit(&con);
+
+        drop_create_function_info(info);
     }
 }

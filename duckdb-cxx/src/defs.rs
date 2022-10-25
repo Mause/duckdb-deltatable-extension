@@ -32,12 +32,16 @@ include_cpp! {
     extern_cpp_type!("duckdb::TaskScheduler", crate::TaskScheduler)
     generate!("ext_framework::RustCreateFunctionInfo")
     generate!("ext_framework::create")
+    generate!("ext_framework::drop_create_function_info")
 }
 
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
 
 pub(crate) unsafe fn real_create() -> *mut CreateFunctionInfo {
     crate::defs::ffi::ext_framework::create()
+}
+pub(crate) unsafe fn drop_create_function_info(ptr: *mut CreateFunctionInfo) {
+    crate::defs::ffi::ext_framework::drop_create_function_info(ptr);
 }
 
 unsafe impl VectorElement for ConfigurationOption {

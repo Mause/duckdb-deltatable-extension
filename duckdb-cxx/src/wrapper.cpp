@@ -54,4 +54,7 @@ namespace ext_framework {
     duckdb::CreateFunctionInfo* create() {
         return new RustCreateFunctionInfo();
     }
+    void drop_create_function_info(duckdb::CreateFunctionInfo * ptr) {
+        delete ptr;
+    }
 }

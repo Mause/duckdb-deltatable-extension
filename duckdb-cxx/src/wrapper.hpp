@@ -30,4 +30,5 @@ namespace ext_framework {
     };
 
     duckdb::CreateFunctionInfo* create();
+    void drop_create_function_info(duckdb::CreateFunctionInfo* ptr);
 }
