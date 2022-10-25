@@ -1,7 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::upper_case_acronyms)]
 
-use crate::defs::ffi::duckdb::ConfigurationOption;
+use crate::defs::ffi::{duckdb::ConfigurationOption, ToCppString};
 use autocxx::prelude::*;
 use cxx::private::VectorElement;
 use cxx::CxxVector;
@@ -37,8 +37,8 @@ include_cpp! {
 
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
 
-pub(crate) unsafe fn real_create() -> *mut CreateFunctionInfo {
-    crate::defs::ffi::ext_framework::create()
+pub(crate) unsafe fn create(function_name: impl ToCppString) -> *mut CreateFunctionInfo {
+    crate::defs::ffi::ext_framework::create(function_name)
 }
 pub(crate) unsafe fn drop_create_function_info(ptr: *mut CreateFunctionInfo) {
     crate::defs::ffi::ext_framework::drop_create_function_info(ptr);

@@ -43,16 +43,16 @@ namespace ext_framework {
     void FunctionActual(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) {
     }
 
-    RustCreateFunctionInfo::RustCreateFunctionInfo() : CreateScalarFunctionInfo(
-            duckdb::ScalarFunction("main", {duckdb::LogicalTypeId::VARCHAR}, duckdb::LogicalTypeId::VARCHAR, FunctionActual)
+    RustCreateFunctionInfo::RustCreateFunctionInfo(std::string function_name) : CreateScalarFunctionInfo(
+            duckdb::ScalarFunction(std::move(function_name), {duckdb::LogicalTypeId::VARCHAR}, duckdb::LogicalTypeId::VARCHAR, FunctionActual)
         ) {}
 
     std::unique_ptr<duckdb::CreateInfo> RustCreateFunctionInfo::Copy() const {
-        return std::make_unique<RustCreateFunctionInfo>();
+        return std::make_unique<RustCreateFunctionInfo>(this->name);
     }
 
-    duckdb::CreateFunctionInfo* create() {
-        return new RustCreateFunctionInfo();
+    duckdb::CreateFunctionInfo *create(std::string name) {
+        return new RustCreateFunctionInfo(std::move(name));
     }
     void drop_create_function_info(duckdb::CreateFunctionInfo * ptr) {
         delete ptr;

@@ -24,11 +24,11 @@ namespace duckdb {
 namespace ext_framework {
     class RustCreateFunctionInfo : public duckdb::CreateScalarFunctionInfo {
     public:
-        DUCKDB_API explicit RustCreateFunctionInfo();
+        DUCKDB_API explicit RustCreateFunctionInfo(std::string function_name);
 
         [[nodiscard]] std::unique_ptr<duckdb::CreateInfo> Copy() const override;
     };
 
-    duckdb::CreateFunctionInfo* create();
+    duckdb::CreateFunctionInfo* create(std::string function_name);
     void drop_create_function_info(duckdb::CreateFunctionInfo* ptr);
 }
