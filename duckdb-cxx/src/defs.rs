@@ -33,17 +33,35 @@ include_cpp! {
     generate!("ext_framework::RustCreateFunctionInfo")
     generate!("ext_framework::create_function_info")
     generate!("ext_framework::drop_create_function_info")
+    generate!("ext_framework::create_logical_type")
+    generate!("duckdb::LogicalTypeId")
+    generate!("ext_framework::ScalarFunctionBuilder")
 }
 
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
+pub type ScalarFunction = crate::defs::ffi::duckdb::ScalarFunction;
+pub type ScalarFunctionBuilder = crate::defs::ffi::ext_framework::ScalarFunctionBuilder;
+pub type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
+pub type LogicalType = crate::defs::ffi::duckdb::LogicalType;
+
+use self::ffi::ext_framework as ext;
 
 pub(crate) unsafe fn create_function_info(
     function_name: impl ToCppString,
 ) -> *mut CreateFunctionInfo {
-    crate::defs::ffi::ext_framework::create_function_info(function_name)
+    ext::create_function_info(function_name)
 }
 pub(crate) unsafe fn drop_create_function_info(ptr: *mut CreateFunctionInfo) {
-    crate::defs::ffi::ext_framework::drop_create_function_info(ptr);
+    ext::drop_create_function_info(ptr);
+}
+
+impl LogicalType {
+    pub unsafe fn new(id: LogicalTypeId) -> impl autocxx::moveit::new::New<Output = Self> {
+        autocxx::moveit::new::by_raw(move |this| {
+            let this = this.get_unchecked_mut().as_mut_ptr();
+            otherffi::duckdb_LogicalType_new1_autocxx_wrapper(this, id)
+        })
+    }
 }
 
 unsafe impl VectorElement for ConfigurationOption {
@@ -90,11 +108,13 @@ pub mod otherffi {
         include!("wrapper.hpp");
         include!("duckdb.hpp");
 
-        pub(crate) type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
+        pub type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
         pub(crate) type CreateFunctionInfo = crate::defs::ffi::duckdb::CreateFunctionInfo;
         pub(crate) type DuckDB = crate::defs::ffi::duckdb::DuckDB;
         pub(crate) type Catalog = crate::defs::ffi::duckdb::Catalog;
         pub(crate) type ClientContext = crate::defs::ffi::duckdb::ClientContext;
+        pub(crate) type LogicalType = crate::defs::ffi::duckdb::LogicalType;
+        pub(crate) type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
 
         pub(crate) type Connection;
 
@@ -107,5 +127,10 @@ pub mod otherffi {
         pub(crate) fn commit(conn: &SharedPtr<Connection>);
         pub(crate) fn get_catalog(conn: &mut SharedPtr<DatabaseInstance>) -> Pin<&mut Catalog>;
         pub(crate) fn get_context(conn: &mut SharedPtr<Connection>) -> Pin<&mut ClientContext>;
+
+        pub(crate) unsafe fn duckdb_LogicalType_new1_autocxx_wrapper(
+            autocxx_gen_this: *mut LogicalType,
+            arg1: LogicalTypeId,
+        );
     }
 }

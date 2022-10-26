@@ -19,6 +19,3 @@ cxx-build = "1.0.79"
 
 [lib]
 name = "duckdb_cxx"
-
-[[bin]]
-name = "duckdb_cxx"

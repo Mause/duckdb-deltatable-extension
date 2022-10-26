@@ -9,6 +9,9 @@ use crate::defs::{create_function_info, drop_create_function_info, QueryErrorCon
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
 
+pub use crate::defs::otherffi::DatabaseInstance;
+pub use crate::defs::{LogicalType, LogicalTypeId, ScalarFunction, ScalarFunctionBuilder};
+
 mod defs;
 mod macros;
 
@@ -20,7 +23,7 @@ pub fn get_version() -> String {
     }
 }
 
-pub fn load_extension() {
+pub fn load_extension(_instance: *mut DatabaseInstance) {
     unsafe {
         let db = new_duckdb();
 
@@ -32,6 +35,19 @@ pub fn load_extension() {
         begin_transaction(&con);
 
         let context = get_context(&mut con);
+
+        let_cxx_string!(function_name = "function_name");
+
+        let mut logi = LogicalType::new(LogicalTypeId::VARCHAR).within_unique_ptr();
+
+        moveit! {
+            let mut builder = ScalarFunctionBuilder::new(
+                &function_name,
+                logi.pin_mut(),
+            );
+        }
+        builder.as_mut().addArgument(logi.pin_mut());
+        let _scalar_function = builder.as_mut().build();
 
         let info = create_function_info("function_name");
 
