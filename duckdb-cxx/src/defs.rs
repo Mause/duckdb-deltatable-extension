@@ -46,13 +46,18 @@ pub type LogicalType = crate::defs::ffi::duckdb::LogicalType;
 
 use self::ffi::ext_framework as ext;
 
-pub(crate) unsafe fn create_function_info(
-    function_name: impl ToCppString,
-) -> *mut CreateFunctionInfo {
-    ext::create_function_info(function_name)
+pub(crate) struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
+impl RustCreateFunctionInfo {
+    pub fn new(function_name: impl ToCppString) -> Self {
+        Self(unsafe { ext::create_function_info(function_name) })
+    }
 }
-pub(crate) unsafe fn drop_create_function_info(ptr: *mut CreateFunctionInfo) {
-    ext::drop_create_function_info(ptr);
+impl Drop for RustCreateFunctionInfo {
+    fn drop(&mut self) {
+        unsafe {
+            ext::drop_create_function_info(self.0);
+        }
+    }
 }
 
 impl LogicalType {
