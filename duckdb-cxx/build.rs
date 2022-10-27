@@ -12,14 +12,17 @@ fn main() -> miette::Result<()> {
     let mut b = autocxx_build::Builder::new(main_file, &[&duckdb, &src]).build()?;
     // This assumes all your C++ bindings are in main.rs
 
+    let wrapper = "src/wrapper.cpp";
     b.include(&duckdb)
         .include(&src)
-        .files(vec!["src/wrapper.cpp"])
+        .files(vec![wrapper])
         .flag_if_supported("-Wno-unused-parameter")
         .flag_if_supported("-Wno-redundant-move")
         .flag_if_supported("-std=c++14")
         .compile("autocxx-demo"); // arbitrary library name, pick anything
     cargo_rerun_if_changed(main_file);
+    cargo_rerun_if_changed(wrapper);
+    cargo_rerun_if_changed("src/wrapper.hpp");
 
     cargo_rustc_link_lib("duckdb");
     cargo_rustc_link_lib("ubsan");
