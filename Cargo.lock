@@ -354,7 +354,6 @@ dependencies = [
  "deltalake",
  "duckdb-extension-framework",
  "lazy_static",
- "libc",
  "parquet",
  "tokio",
 ]
