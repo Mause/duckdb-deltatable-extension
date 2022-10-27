@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 deltalake = { version = "0.4.0", features=[] }
-libc = "0.2.136"
 tokio = { version = "1.21.2", features=['rt'] }
 parquet = "4"
 lazy_static = "1.4.0"
