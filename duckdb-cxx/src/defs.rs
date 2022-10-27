@@ -115,7 +115,6 @@ pub mod otherffi {
 
         pub type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
         pub(crate) type CreateFunctionInfo = crate::defs::ffi::duckdb::CreateFunctionInfo;
-        pub(crate) type DuckDB = crate::defs::ffi::duckdb::DuckDB;
         pub(crate) type Catalog = crate::defs::ffi::duckdb::Catalog;
         pub(crate) type ClientContext = crate::defs::ffi::duckdb::ClientContext;
         pub(crate) type LogicalType = crate::defs::ffi::duckdb::LogicalType;
@@ -123,15 +122,14 @@ pub mod otherffi {
 
         pub(crate) type Connection;
 
-        pub(crate) fn new_duckdb() -> SharedPtr<DuckDB>;
-        pub(crate) fn duckdb_source_id() -> *const c_char;
-        pub(crate) fn get_instance(buf: &SharedPtr<DuckDB>) -> SharedPtr<DatabaseInstance>;
+        pub fn new_duckdb() -> *mut DatabaseInstance;
+        pub fn duckdb_source_id() -> *const c_char;
 
-        pub(crate) fn new_connection(duckdb: &SharedPtr<DuckDB>) -> SharedPtr<Connection>;
-        pub(crate) fn begin_transaction(conn: &SharedPtr<Connection>);
-        pub(crate) fn commit(conn: &SharedPtr<Connection>);
-        pub(crate) fn get_catalog(conn: &mut SharedPtr<DatabaseInstance>) -> Pin<&mut Catalog>;
-        pub(crate) fn get_context(conn: &mut SharedPtr<Connection>) -> Pin<&mut ClientContext>;
+        pub fn new_connection(duckdb: Pin<&mut DatabaseInstance>) -> SharedPtr<Connection>;
+        pub fn begin_transaction(conn: &SharedPtr<Connection>);
+        pub fn commit(conn: &SharedPtr<Connection>);
+        pub fn get_catalog(conn: Pin<&mut DatabaseInstance>) -> Pin<&mut Catalog>;
+        pub fn get_context(conn: &mut SharedPtr<Connection>) -> Pin<&mut ClientContext>;
 
         pub(crate) unsafe fn duckdb_LogicalType_new1_autocxx_wrapper(
             autocxx_gen_this: *mut LogicalType,

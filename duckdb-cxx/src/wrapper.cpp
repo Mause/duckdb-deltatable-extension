@@ -2,12 +2,14 @@
 #include "wrapper.hpp"
 #include "duckdb.hpp"
 
-void FunctionActual(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) {
+void FunctionActual(duckdb::DataChunk &args, duckdb::ExpressionState & state, duckdb::Vector & result) {
+    duckdb::Value actual("hello");
+    result.Reference(actual);
 }
 
 namespace duckdb {
-    std::shared_ptr <duckdb::DuckDB> new_duckdb() {
-        return std::make_shared<DuckDB>(":memory:");
+    DatabaseInstance* new_duckdb() {
+        return &*std::make_shared<DuckDB>(":memory:")->instance;
     }
 
     const char *duckdb_source_id() {
@@ -22,8 +24,8 @@ namespace duckdb {
         cfi.name = name;
     }
 
-    shared_ptr<Connection> new_connection(const shared_ptr<DuckDB>& duckdb) {
-        return std::make_shared<Connection>(*duckdb);
+    shared_ptr<Connection> new_connection(DatabaseInstance& duckdb) {
+        return std::make_shared<Connection>(duckdb);
     }
 
     void begin_transaction(const shared_ptr<Connection>& connection) {
@@ -34,8 +36,8 @@ namespace duckdb {
         connection->Commit();
     }
 
-    Catalog& get_catalog(shared_ptr<DatabaseInstance>& database_instance) {
-        return database_instance->GetCatalog();
+    Catalog& get_catalog(DatabaseInstance& database_instance) {
+        return database_instance.GetCatalog();
     }
 
     duckdb::ClientContext& get_context(std::shared_ptr<duckdb::Connection>& connection) {
