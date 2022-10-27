@@ -2,11 +2,13 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use crate::defs::ffi::{duckdb::ConfigurationOption, ToCppString};
+use crate::DatabaseInstance;
 use autocxx::prelude::*;
 use cxx::private::VectorElement;
-use cxx::CxxVector;
 use cxx::{type_id, ExternType};
-use std::fmt::Formatter;
+use cxx::{CxxVector, SharedPtr};
+use std::any::Any;
+use std::fmt::{Debug, Formatter};
 use std::mem::MaybeUninit;
 
 use self::otherffi::CreateFunctionInfo;
@@ -36,15 +38,26 @@ include_cpp! {
     generate!("ext_framework::create_logical_type")
     generate!("duckdb::LogicalTypeId")
     generate!("ext_framework::ScalarFunctionBuilder")
+    generate!("duckdb::new_duckdb")
+    generate!("duckdb::get_instance")
 }
+// pub fn new_duckdb() -> *mut DatabaseInstance;
 
 pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
 pub type ScalarFunction = crate::defs::ffi::duckdb::ScalarFunction;
 pub type ScalarFunctionBuilder = crate::defs::ffi::ext_framework::ScalarFunctionBuilder;
 pub type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
 pub type LogicalType = crate::defs::ffi::duckdb::LogicalType;
+pub type DuckDB = crate::defs::ffi::duckdb::DuckDB;
 
 use self::ffi::ext_framework as ext;
+
+pub fn new_duckdb() -> SharedPtr<DuckDB> {
+    unsafe { crate::defs::ffi::duckdb::new_duckdb() }
+}
+pub fn get_instance(duckdb: &SharedPtr<DuckDB>) -> *mut DatabaseInstance {
+    unsafe { crate::defs::ffi::duckdb::get_instance(duckdb) }
+}
 
 pub(crate) struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
 impl RustCreateFunctionInfo {
@@ -57,6 +70,14 @@ impl Drop for RustCreateFunctionInfo {
         unsafe {
             ext::drop_create_function_info(self.0);
         }
+    }
+}
+
+impl Debug for DatabaseInstance {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("DatabaseInstance")
+            .field("type_id", &self.type_id())
+            .finish()
     }
 }
 
@@ -122,7 +143,6 @@ pub mod otherffi {
 
         pub(crate) type Connection;
 
-        pub fn new_duckdb() -> *mut DatabaseInstance;
         pub fn duckdb_source_id() -> *const c_char;
 
         pub fn new_connection(duckdb: Pin<&mut DatabaseInstance>) -> SharedPtr<Connection>;

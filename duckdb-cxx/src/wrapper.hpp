@@ -7,7 +7,7 @@
 #include "duckdb/common/types.hpp"
 
 namespace duckdb {
-    duckdb::DatabaseInstance* new_duckdb();
+    std::shared_ptr<DuckDB> new_duckdb();
 
     const char* duckdb_source_id();
     void set_name(CreateFunctionInfo& cfi, const std::string& name);
@@ -20,6 +20,7 @@ namespace duckdb {
     Catalog& get_catalog(DatabaseInstance& database_instance);
 
     duckdb::ClientContext& get_context(std::shared_ptr<duckdb::Connection>&);
+    DatabaseInstance* get_instance(const std::shared_ptr<DuckDB>& duck);
 
     void duckdb_LogicalType_new1_autocxx_wrapper(duckdb::LogicalType* autocxx_gen_this, duckdb::LogicalTypeId arg1);
 }

@@ -8,16 +8,16 @@ void FunctionActual(duckdb::DataChunk &args, duckdb::ExpressionState & state, du
 }
 
 namespace duckdb {
-    DatabaseInstance* new_duckdb() {
-        return &*std::make_shared<DuckDB>(":memory:")->instance;
+    std::shared_ptr<DuckDB> new_duckdb() {
+        return std::make_shared<DuckDB>(":memory:");
     }
 
     const char *duckdb_source_id() {
         return DuckDB::SourceID();
     }
 
-    std::shared_ptr <DatabaseInstance> get_instance(const shared_ptr<DuckDB>& duck) {
-        return duck->instance;
+    DatabaseInstance* get_instance(const shared_ptr<DuckDB>& duck) {
+        return &*duck->instance;
     }
 
     void set_name(CreateFunctionInfo& cfi, const std::string& name) {
