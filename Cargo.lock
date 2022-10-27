@@ -590,7 +590,6 @@ dependencies = [
  "duckdb-cxx",
  "duckdb-extension-framework",
  "lazy_static",
- "libc",
  "parquet",
  "tokio",
  "trace",
