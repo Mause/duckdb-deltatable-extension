@@ -59,16 +59,6 @@ pub fn binder<'a>(
 
 /// # Safety
 pub unsafe fn load_extension(ptr: *mut DatabaseInstance) {
-    println!("ptr: {:?}", ptr);
-    let instance = Pin::new_unchecked(ptr.as_mut().unwrap());
-    println!("instance: {:?}", instance);
-    let catalog = get_catalog(instance);
-
-    let mut con = new_connection(Pin::new_unchecked(ptr.as_mut().unwrap()));
-    begin_transaction(&con);
-
-    let context = get_context(&mut con);
-
     let_cxx_string!(function_name = "function_name");
 
     let mut logi = LogicalType::new(LogicalTypeId::VARCHAR).within_unique_ptr();
@@ -79,20 +69,31 @@ pub unsafe fn load_extension(ptr: *mut DatabaseInstance) {
     builder.pin_mut().addArgument(logi.pin_mut());
     let scalar_function = builder.as_mut().unwrap().build();
 
-    let info = RustCreateFunctionInfo::new(scalar_function);
+    register_function(ptr, RustCreateFunctionInfo::new(scalar_function));
+}
 
-    let_cxx_string!(schema = "main");
+fn register_function(ptr: *mut DatabaseInstance, info: RustCreateFunctionInfo) {
+    unsafe {
+        let instance = Pin::new_unchecked(ptr.as_mut().unwrap());
+        let catalog = get_catalog(instance);
 
-    let ctx = QueryErrorContext::new(null_mut(), 0).within_box();
+        let mut con = new_connection(Pin::new_unchecked(ptr.as_mut().unwrap()));
+        begin_transaction(&con);
 
-    let schema = &catalog.GetSchema(context, &schema, true, ctx);
+        let_cxx_string!(schema = "main");
 
-    let context = get_context(&mut con);
-    let catalog = get_catalog(Pin::new_unchecked(ptr.as_mut().unwrap()));
+        let ctx = QueryErrorContext::new(null_mut(), 0).within_box();
 
-    catalog.CreateFunction1(context, *schema, info.0);
+        let context = get_context(&mut con);
+        let schema = &catalog.GetSchema(context, &schema, true, ctx);
 
-    commit(&con);
+        let context = get_context(&mut con);
+        let catalog = get_catalog(Pin::new_unchecked(ptr.as_mut().unwrap()));
+
+        catalog.CreateFunction1(context, *schema, info.0);
+
+        commit(&con);
+    }
 }
 
 #[cfg(test)]
