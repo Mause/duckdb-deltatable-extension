@@ -46,9 +46,7 @@ namespace duckdb {
     void duckdb_LogicalType_new1_autocxx_wrapper(duckdb::LogicalType* autocxx_gen_this, duckdb::LogicalTypeId arg1) {
         new (autocxx_gen_this) duckdb::LogicalType(arg1);
     }
-}
 
-namespace ext_framework {
     RustCreateFunctionInfo::RustCreateFunctionInfo(std::string function_name) : CreateScalarFunctionInfo(
             duckdb::ScalarFunction(std::move(function_name), {duckdb::LogicalTypeId::VARCHAR}, duckdb::LogicalTypeId::VARCHAR, FunctionActual)
         ) {}
@@ -72,12 +70,24 @@ namespace ext_framework {
         this->arguments.emplace_back(arg);
     }
 
-//    void ScalarFunctionBuilder::setFunction(const duckdb::scalar_function_t &function) {
-//        this->function = function;
-//    }
+    void vector_print(const Vector &autocxx_gen_this) {
+        Printer::Print(autocxx_gen_this.ToString());
+    }
 
-    void ScalarFunctionBuilder::setBind(duckdb::bind_scalar_function_t bind) {
-        this->bind = bind;
+    void setFunction(ScalarFunctionBuilder &builder,
+                             rust::cxxbridge1::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &,
+                                                       duckdb::Vector &)> function) {
+        builder.function = function;
+    }
+
+    void setBind(ScalarFunctionBuilder &builder,
+                         rust::cxxbridge1::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &,
+                                                   duckdb::Vector &)> bind) {
+//        builder.bind = bind;
+    }
+
+    void vector_reference_value(Vector &autocxx_gen_this, const Value &value) {
+        autocxx_gen_this.Reference(value);
     }
 
     void ScalarFunctionBuilder::setReturnType(duckdb::LogicalType &returnType) {
@@ -89,9 +99,9 @@ namespace ext_framework {
     }
 
     std::unique_ptr<duckdb::ScalarFunction> ScalarFunctionBuilder::build() {
-        void (*actual)(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) = FunctionActual;
+//        void (*actual)(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) = FunctionActual;
         return std::make_unique<duckdb::ScalarFunction>(
-                function_name, arguments, return_type, actual
+                function_name, arguments, return_type, function
         );
     }
 }

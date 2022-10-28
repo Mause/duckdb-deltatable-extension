@@ -10,6 +10,7 @@ use cxx::{CxxVector, SharedPtr};
 use std::any::Any;
 use std::fmt::{Debug, Formatter};
 use std::mem::MaybeUninit;
+use std::pin::Pin;
 
 use self::otherffi::CreateFunctionInfo;
 
@@ -32,46 +33,65 @@ include_cpp! {
     generate!("duckdb::CatalogType")
     generate!("duckdb::QueryErrorContext")
     extern_cpp_type!("duckdb::TaskScheduler", crate::TaskScheduler)
-    generate!("ext_framework::RustCreateFunctionInfo")
-    generate!("ext_framework::create_function_info")
-    generate!("ext_framework::drop_create_function_info")
-    generate!("ext_framework::create_logical_type")
+    generate!("duckdb::RustCreateFunctionInfo")
+    generate!("duckdb::create_function_info")
+    generate!("duckdb::drop_create_function_info")
+    generate!("duckdb::create_logical_type")
     generate!("duckdb::LogicalTypeId")
-    generate!("ext_framework::ScalarFunctionBuilder")
+    generate!("duckdb::ScalarFunctionBuilder")
     generate!("duckdb::new_duckdb")
     generate!("duckdb::get_instance")
+    generate!("duckdb::ExpressionState")
+    generate!("duckdb::vector_print")
+    generate!("duckdb::vector_reference_value")
 }
-// pub fn new_duckdb() -> *mut DatabaseInstance;
 
-pub(crate) type QueryErrorContext = crate::defs::ffi::duckdb::QueryErrorContext;
-pub type ScalarFunction = crate::defs::ffi::duckdb::ScalarFunction;
-pub type ScalarFunctionBuilder = crate::defs::ffi::ext_framework::ScalarFunctionBuilder;
-pub type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
-pub type LogicalType = crate::defs::ffi::duckdb::LogicalType;
-pub type DuckDB = crate::defs::ffi::duckdb::DuckDB;
+use self::ffi::duckdb;
 
-use self::ffi::ext_framework as ext;
+pub(crate) type QueryErrorContext = duckdb::QueryErrorContext;
+pub type ScalarFunction = duckdb::ScalarFunction;
+pub type ScalarFunctionBuilder = duckdb::ScalarFunctionBuilder;
+pub type LogicalTypeId = duckdb::LogicalTypeId;
+pub type LogicalType = duckdb::LogicalType;
+pub type DuckDB = duckdb::DuckDB;
+pub type DataChunk = otherffi::DataChunk;
+pub type ExpressionState = duckdb::ExpressionState;
+pub type Vector = otherffi::Vector;
 
 pub fn new_duckdb() -> SharedPtr<DuckDB> {
-    unsafe { crate::defs::ffi::duckdb::new_duckdb() }
+    unsafe { duckdb::new_duckdb() }
 }
 pub fn get_instance(duckdb: &SharedPtr<DuckDB>) -> *mut DatabaseInstance {
-    unsafe { crate::defs::ffi::duckdb::get_instance(duckdb) }
+    unsafe { duckdb::get_instance(duckdb) }
 }
 
 pub(crate) struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
 impl RustCreateFunctionInfo {
     pub fn new(function_name: impl ToCppString) -> Self {
-        Self(unsafe { ext::create_function_info(function_name) })
+        Self(unsafe { duckdb::create_function_info(function_name) })
     }
 }
 impl Drop for RustCreateFunctionInfo {
     fn drop(&mut self) {
         unsafe {
-            ext::drop_create_function_info(self.0);
+            duckdb::drop_create_function_info(self.0);
         }
     }
 }
+
+impl Vector {
+    pub fn print(&self) {
+        unsafe {
+            duckdb::vector_print(self);
+        }
+    }
+}
+
+pub type ScalarFunctionT = for<'r, 's, 't0> fn(
+    &'r duckdb::DataChunk,
+    &'s duckdb::ExpressionState,
+    Pin<&'t0 mut otherffi::Vector>,
+);
 
 impl Debug for DatabaseInstance {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -140,6 +160,10 @@ pub mod otherffi {
         pub(crate) type ClientContext = crate::defs::ffi::duckdb::ClientContext;
         pub(crate) type LogicalType = crate::defs::ffi::duckdb::LogicalType;
         pub(crate) type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
+        type ScalarFunctionBuilder = crate::defs::ScalarFunctionBuilder;
+        pub(crate) type DataChunk = crate::defs::ffi::duckdb::DataChunk;
+        type ExpressionState = crate::defs::ExpressionState;
+        pub(crate) type Vector = crate::defs::ffi::duckdb::Vector;
 
         pub(crate) type Connection;
 
@@ -154,6 +178,23 @@ pub mod otherffi {
         pub(crate) unsafe fn duckdb_LogicalType_new1_autocxx_wrapper(
             autocxx_gen_this: *mut LogicalType,
             arg1: LogicalTypeId,
+        );
+
+        pub(crate) unsafe fn setBind(
+            autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
+            scalar_function: unsafe extern "C" fn(
+                args: &DataChunk,
+                state: &ExpressionState,
+                result: Pin<&mut Vector>,
+            ),
+        );
+        pub(crate) unsafe fn setFunction(
+            autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
+            scalar_function: unsafe extern "C" fn(
+                args: &DataChunk,
+                state: &ExpressionState,
+                result: Pin<&mut Vector>,
+            ),
         );
     }
 }

@@ -5,6 +5,7 @@
 #include "duckdb/parser/parsed_data/create_function_info.hpp"
 #include "duckdb/parser/parsed_data/create_scalar_function_info.hpp"
 #include "duckdb/common/types.hpp"
+#include <cxx.h>
 
 namespace duckdb {
     std::shared_ptr<DuckDB> new_duckdb();
@@ -15,7 +16,6 @@ namespace duckdb {
     shared_ptr<Connection> new_connection(DatabaseInstance& duckdb);
     void begin_transaction(const shared_ptr<Connection>& connection);
     void commit(const shared_ptr<Connection>& connection);
-    shared_ptr<CreateFunctionInfo> create_function_info();
 
     Catalog& get_catalog(DatabaseInstance& database_instance);
 
@@ -23,9 +23,7 @@ namespace duckdb {
     DatabaseInstance* get_instance(const std::shared_ptr<DuckDB>& duck);
 
     void duckdb_LogicalType_new1_autocxx_wrapper(duckdb::LogicalType* autocxx_gen_this, duckdb::LogicalTypeId arg1);
-}
 
-namespace ext_framework {
     class RustCreateFunctionInfo : public duckdb::CreateScalarFunctionInfo {
     public:
         DUCKDB_API explicit RustCreateFunctionInfo(std::string function_name);
@@ -42,22 +40,30 @@ namespace ext_framework {
 
         void setReturnType(duckdb::LogicalType &returnType);
 
-        void setBind(duckdb::bind_scalar_function_t bind);
-
-//        void setFunction(const duckdb::scalar_function_t &function);
-
         void addArgument(duckdb::LogicalType& arg);
 
+        rust::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &, duckdb::Vector &)> function;
+        rust::Fn<FunctionData(ClientContext &context, ScalarFunction &bound_function,
+                              vector<unique_ptr<Expression>> &arguments)> bind;
     private:
         const std::string &function_name;
         std::vector<duckdb::LogicalType> arguments;
         duckdb::LogicalType& return_type;
-        duckdb::bind_scalar_function_t bind;
-        duckdb::scalar_function_t function;
     };
 
     duckdb::LogicalType* create_logical_type(duckdb::LogicalTypeId typ);
 
     duckdb::CreateFunctionInfo* create_function_info(std::string function_name);
     void drop_create_function_info(duckdb::CreateFunctionInfo* ptr);
+
+    void vector_print(const duckdb::Vector& autocxx_gen_this);
+    void vector_reference_value(duckdb::Vector& autocxx_gen_this, Value& value);
+
+    void setBind(
+        duckdb::ScalarFunctionBuilder& builder,
+        rust::cxxbridge1::Fn<void(const duckdb::DataChunk&, const duckdb::ExpressionState&, duckdb::Vector&)> bind);
+    void setFunction(
+        duckdb::ScalarFunctionBuilder& builder,
+        rust::cxxbridge1::Fn<void(const duckdb::DataChunk&, const duckdb::ExpressionState&, duckdb::Vector&)> function
+    );
 }
