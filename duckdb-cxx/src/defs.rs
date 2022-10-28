@@ -44,19 +44,21 @@ include_cpp! {
     generate!("duckdb::ExpressionState")
     generate!("duckdb::vector_print")
     generate!("duckdb::vector_reference_value")
+    generate!("duckdb::value_from_string")
 }
 
 use self::ffi::duckdb;
 
-pub(crate) type QueryErrorContext = duckdb::QueryErrorContext;
+pub type QueryErrorContext = duckdb::QueryErrorContext;
 pub type ScalarFunction = duckdb::ScalarFunction;
 pub type ScalarFunctionBuilder = duckdb::ScalarFunctionBuilder;
 pub type LogicalTypeId = duckdb::LogicalTypeId;
 pub type LogicalType = duckdb::LogicalType;
 pub type DuckDB = duckdb::DuckDB;
-pub type DataChunk = otherffi::DataChunk;
+pub type DataChunk = duckdb::DataChunk;
 pub type ExpressionState = duckdb::ExpressionState;
-pub type Vector = otherffi::Vector;
+pub type Vector = duckdb::Vector;
+pub type Value = duckdb::Value;
 
 pub fn new_duckdb() -> SharedPtr<DuckDB> {
     unsafe { duckdb::new_duckdb() }
@@ -65,10 +67,10 @@ pub fn get_instance(duckdb: &SharedPtr<DuckDB>) -> *mut DatabaseInstance {
     unsafe { duckdb::get_instance(duckdb) }
 }
 
-pub(crate) struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
+pub struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
 impl RustCreateFunctionInfo {
-    pub fn new(function_name: impl ToCppString) -> Self {
-        Self(unsafe { duckdb::create_function_info(function_name) })
+    pub fn new(mut function: UniquePtr<ScalarFunction>) -> Self {
+        Self(unsafe { duckdb::create_function_info(function.pin_mut()) })
     }
 }
 impl Drop for RustCreateFunctionInfo {
@@ -79,10 +81,21 @@ impl Drop for RustCreateFunctionInfo {
     }
 }
 
+impl Value {
+    pub fn from_string(string: &str) -> UniquePtr<Self> {
+        unsafe { duckdb::value_from_string(string.into_cpp().pin_mut()) }
+    }
+}
+
 impl Vector {
     pub fn print(&self) {
         unsafe {
             duckdb::vector_print(self);
+        }
+    }
+    pub fn reference_value(&mut self, value: &mut Value) {
+        unsafe {
+            duckdb::vector_reference_value(Pin::new_unchecked(self), Pin::new_unchecked(value))
         }
     }
 }
@@ -180,7 +193,7 @@ pub mod otherffi {
             arg1: LogicalTypeId,
         );
 
-        pub(crate) unsafe fn setBind(
+        pub unsafe fn setBind(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
             scalar_function: unsafe extern "C" fn(
                 args: &DataChunk,
@@ -188,7 +201,7 @@ pub mod otherffi {
                 result: Pin<&mut Vector>,
             ),
         );
-        pub(crate) unsafe fn setFunction(
+        pub unsafe fn setFunction(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
             scalar_function: unsafe extern "C" fn(
                 args: &DataChunk,

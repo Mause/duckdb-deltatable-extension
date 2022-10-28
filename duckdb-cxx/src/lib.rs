@@ -6,12 +6,14 @@ pub use crate::defs::otherffi::{
     begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, setBind,
     setFunction,
 };
-use crate::defs::{DataChunk, ExpressionState, QueryErrorContext, RustCreateFunctionInfo, Vector};
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
 
 pub use crate::defs::otherffi::DatabaseInstance;
-pub use crate::defs::{LogicalType, LogicalTypeId, ScalarFunction, ScalarFunctionBuilder};
+pub use crate::defs::{
+    DataChunk, ExpressionState, LogicalType, LogicalTypeId, QueryErrorContext,
+    RustCreateFunctionInfo, ScalarFunction, ScalarFunctionBuilder, Value, Vector,
+};
 
 mod defs;
 mod macros;
@@ -24,8 +26,16 @@ pub fn get_version() -> String {
     }
 }
 
-pub fn binder(args: &DataChunk, state: &ExpressionState, mut result: Pin<&mut Vector>) {
-    result.as_mut().print();
+pub fn binder(_args: &DataChunk, _state: &ExpressionState, result: Pin<&mut Vector>) {
+    let mut value = Value::from_string("hello");
+
+    unsafe {
+        let value = Pin::into_inner_unchecked(value.pin_mut());
+
+        let result = Pin::get_unchecked_mut(result);
+
+        result.reference_value(value);
+    }
 }
 
 /// # Safety
@@ -47,11 +57,10 @@ pub unsafe fn load_extension(ptr: *mut DatabaseInstance) {
     let mut builder =
         ScalarFunctionBuilder::new(&function_name, logi.pin_mut()).within_unique_ptr();
     setFunction(builder.pin_mut(), binder);
-    // builder.as_unchecked_mut().addArgument(logi.pin_mut());
-    // builder.as_mut().setBind(binder);
-    let _scalar_function = builder.as_mut().unwrap().build();
+    builder.pin_mut().addArgument(logi.pin_mut());
+    let scalar_function = builder.as_mut().unwrap().build();
 
-    let info = RustCreateFunctionInfo::new("function_name");
+    let info = RustCreateFunctionInfo::new(scalar_function);
 
     let_cxx_string!(schema = "main");
 

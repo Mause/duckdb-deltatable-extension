@@ -26,7 +26,7 @@ namespace duckdb {
 
     class RustCreateFunctionInfo : public duckdb::CreateScalarFunctionInfo {
     public:
-        DUCKDB_API explicit RustCreateFunctionInfo(std::string function_name);
+        DUCKDB_API explicit RustCreateFunctionInfo(ScalarFunction &scalar_function);
 
         [[nodiscard]] std::unique_ptr<duckdb::CreateInfo> Copy() const override;
     };
@@ -53,7 +53,7 @@ namespace duckdb {
 
     duckdb::LogicalType* create_logical_type(duckdb::LogicalTypeId typ);
 
-    duckdb::CreateFunctionInfo* create_function_info(std::string function_name);
+    duckdb::CreateFunctionInfo* create_function_info(ScalarFunction& scalarFunction);
     void drop_create_function_info(duckdb::CreateFunctionInfo* ptr);
 
     void vector_print(const duckdb::Vector& autocxx_gen_this);
@@ -66,4 +66,6 @@ namespace duckdb {
         duckdb::ScalarFunctionBuilder& builder,
         rust::cxxbridge1::Fn<void(const duckdb::DataChunk&, const duckdb::ExpressionState&, duckdb::Vector&)> function
     );
+
+    std::unique_ptr<Value> value_from_string(string& s);
 }

@@ -47,16 +47,17 @@ namespace duckdb {
         new (autocxx_gen_this) duckdb::LogicalType(arg1);
     }
 
-    RustCreateFunctionInfo::RustCreateFunctionInfo(std::string function_name) : CreateScalarFunctionInfo(
-            duckdb::ScalarFunction(std::move(function_name), {duckdb::LogicalTypeId::VARCHAR}, duckdb::LogicalTypeId::VARCHAR, FunctionActual)
+    RustCreateFunctionInfo::RustCreateFunctionInfo(ScalarFunction & scalar_function) : CreateScalarFunctionInfo(
+            scalar_function
         ) {}
 
     std::unique_ptr<duckdb::CreateInfo> RustCreateFunctionInfo::Copy() const {
-        return std::make_unique<RustCreateFunctionInfo>(this->name);
+        throw std::runtime_error("can't copy me!");
+//        return std::make_unique<RustCreateFunctionInfo>(this->name);
     }
 
-    duckdb::CreateFunctionInfo *create_function_info(std::string name) {
-        return new RustCreateFunctionInfo(std::move(name));
+    duckdb::CreateFunctionInfo *create_function_info(ScalarFunction &scalarFunction) {
+        return new RustCreateFunctionInfo(scalarFunction);
     }
     void drop_create_function_info(duckdb::CreateFunctionInfo * ptr) {
         delete ptr;
@@ -86,7 +87,11 @@ namespace duckdb {
 //        builder.bind = bind;
     }
 
-    void vector_reference_value(Vector &autocxx_gen_this, const Value &value) {
+    std::unique_ptr<Value> value_from_string(string &s) {
+        return std::make_unique<Value>(s);
+    }
+
+    void vector_reference_value(Vector &autocxx_gen_this, Value &value) {
         autocxx_gen_this.Reference(value);
     }
 
