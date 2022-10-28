@@ -1,5 +1,8 @@
 statement ok
-load './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
+force install './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
+
+statement ok
+load deltatable;
 
 query IIIIII
 describe select * from read_delta('./test/simple_table');
@@ -8,14 +11,13 @@ x	BIGINT	YES		NULL	NULL	NULL
 other	BOOLEAN	YES		NULL	NULL	NULL
 third	VARCHAR	YES		NULL	NULL	NULL
 d	DATE	YES	NULL	NULL	NULL
-t	TIMESTAMP_MS	YES	NULL	NULL	NULL
 
-query IIIII
+query IIII
 select * from read_delta('./test/simple_table')
 ----
-1	true	foo	2022-10-04	54728-08-05 13:20:00
-2	false	baz	2022-10-04	54728-08-05 13:20:00
-3	true	bar	2022-10-04	54728-08-05 13:20:00
+1	true	foo	2022-10-04
+2	false	baz	2022-10-04
+3	true	bar	2022-10-04
 
 query I
 select function_name('transformer');
