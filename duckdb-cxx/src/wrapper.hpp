@@ -61,8 +61,8 @@ namespace duckdb {
     void vector_print(const duckdb::Vector& autocxx_gen_this);
     void vector_reference_value(duckdb::Vector& autocxx_gen_this, Value& value);
 
-    void setBind(duckdb::ScalarFunctionBuilder& builder, BindFunctionT bind);
-    void setFunction(duckdb::ScalarFunctionBuilder& builder, ScalarFunctionT function);
+    void set_bind(duckdb::ScalarFunctionBuilder& builder, BindFunctionT bind);
+    void set_function(duckdb::ScalarFunctionBuilder& builder, ScalarFunctionT function);
 
     Value datachunk_get_value(const duckdb::DataChunk& datachunk, size_t col, size_t row);
 

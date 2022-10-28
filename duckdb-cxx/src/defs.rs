@@ -1,6 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::upper_case_acronyms)]
 
+use self::otherffi::{ClientContext, CreateFunctionInfo, Expression, RustFunctionData};
 use crate::defs::ffi::{duckdb::ConfigurationOption, ToCppString};
 use crate::DatabaseInstance;
 use autocxx::prelude::*;
@@ -11,8 +12,6 @@ use std::any::Any;
 use std::fmt::{Debug, Formatter};
 use std::mem::MaybeUninit;
 use std::pin::Pin;
-
-use self::otherffi::CreateFunctionInfo;
 
 pub(crate) struct TaskScheduler {}
 unsafe impl ExternType for TaskScheduler {
@@ -58,9 +57,8 @@ include_cpp! {
 }
 
 use self::ffi::duckdb;
+pub use self::ffi::duckdb::{QueryErrorContext, ScalarFunction};
 
-pub type QueryErrorContext = duckdb::QueryErrorContext;
-pub type ScalarFunction = duckdb::ScalarFunction;
 pub type ScalarFunctionBuilder = duckdb::ScalarFunctionBuilder;
 pub type LogicalTypeId = duckdb::LogicalTypeId;
 pub type LogicalType = duckdb::LogicalType;
@@ -186,6 +184,26 @@ unsafe impl VectorElement for ConfigurationOption {
     }
 }
 
+pub type ScalarFunctionT = fn(
+    args: &DataChunk,
+    state: &ExpressionState,
+    result: Pin<&mut Vector>,
+) -> UniquePtr<PreservedError>;
+pub type BindFunctionT = fn(
+    context: &ClientContext,
+    bound_function: &ScalarFunction,
+    arguments: &mut &[UniquePtr<Expression>],
+) -> UniquePtr<RustFunctionData>;
+
+impl ScalarFunctionBuilder {
+    pub fn set_function(self: Pin<&mut Self>, function: ScalarFunctionT) {
+        unsafe { otherffi::set_function(self, function) };
+    }
+    pub fn set_bind(self: Pin<&mut Self>, function: BindFunctionT) {
+        unsafe { otherffi::set_bind(self, function) };
+    }
+}
+
 #[cxx::bridge(namespace = "duckdb")]
 pub mod otherffi {
     unsafe extern "C++" {
@@ -202,8 +220,8 @@ pub mod otherffi {
         type ScalarFunction = crate::defs::ScalarFunction;
         pub(crate) type DataChunk = crate::defs::ffi::duckdb::DataChunk;
         type ExpressionState = crate::defs::ExpressionState;
-        type Expression = crate::defs::ffi::duckdb::Expression;
-        type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
+        pub(crate) type Expression = crate::defs::ffi::duckdb::Expression;
+        pub(crate) type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
         type PreservedError = crate::defs::ffi::duckdb::PreservedError;
         pub(crate) type Vector = crate::defs::ffi::duckdb::Vector;
 
@@ -222,7 +240,7 @@ pub mod otherffi {
             arg1: LogicalTypeId,
         );
 
-        pub unsafe fn setBind(
+        pub(crate) unsafe fn set_bind(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
             scalar_function: unsafe extern "C" fn(
                 context: &ClientContext,
@@ -230,7 +248,7 @@ pub mod otherffi {
                 arguments: &mut &[UniquePtr<Expression>],
             ) -> UniquePtr<RustFunctionData>,
         );
-        pub unsafe fn setFunction(
+        pub(crate) unsafe fn set_function(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
             scalar_function: unsafe extern "C" fn(
                 args: &DataChunk,

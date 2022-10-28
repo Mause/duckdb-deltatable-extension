@@ -75,11 +75,11 @@ namespace duckdb {
         Printer::Print(autocxx_gen_this.ToString());
     }
 
-    void setFunction(ScalarFunctionBuilder &builder, ScalarFunctionT function) {
+    void set_function(ScalarFunctionBuilder &builder, ScalarFunctionT function) {
         builder.function = function;
     }
 
-    void setBind(ScalarFunctionBuilder &builder, BindFunctionT bind) {
+    void set_bind(ScalarFunctionBuilder &builder, BindFunctionT bind) {
         builder.bind = bind;
     }
 

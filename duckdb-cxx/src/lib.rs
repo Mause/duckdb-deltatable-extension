@@ -5,11 +5,11 @@ use std::pin::Pin;
 use std::ptr::null_mut;
 
 pub use crate::defs::otherffi::{
-    begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, setBind,
-    setFunction,
+    begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, set_bind,
 };
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
+use defs::otherffi::{ClientContext, Expression, RustFunctionData};
 
 pub use crate::defs::otherffi::DatabaseInstance;
 pub use crate::defs::{
@@ -56,6 +56,13 @@ pub fn binder<'a>(
         UniquePtr::null()
     }
 }
+pub fn bind_function(
+    context: &ClientContext,
+    scalar_function: &ScalarFunction,
+    arguments: &mut &[cxx::UniquePtr<Expression>],
+) -> UniquePtr<RustFunctionData> {
+    UniquePtr::null()
+}
 
 /// # Safety
 pub unsafe fn load_extension(ptr: *mut DatabaseInstance) {
@@ -65,7 +72,8 @@ pub unsafe fn load_extension(ptr: *mut DatabaseInstance) {
 
     let mut builder =
         ScalarFunctionBuilder::new(&function_name, logi.pin_mut()).within_unique_ptr();
-    setFunction(builder.pin_mut(), binder);
+    builder.pin_mut().set_function(binder);
+    builder.pin_mut().set_bind(bind_function);
     builder.pin_mut().addArgument(logi.pin_mut());
     let scalar_function = builder.as_mut().unwrap().build();
 
