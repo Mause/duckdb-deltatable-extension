@@ -203,7 +203,6 @@ mod otherffi {
         include!("duckdb.hpp");
 
         type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
-        type CreateFunctionInfo = crate::defs::ffi::duckdb::CreateFunctionInfo;
         type Catalog = crate::defs::ffi::duckdb::Catalog;
         type ClientContext = crate::defs::ffi::duckdb::ClientContext;
         type LogicalType = crate::defs::ffi::duckdb::LogicalType;
