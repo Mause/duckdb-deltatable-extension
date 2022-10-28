@@ -21,3 +21,6 @@ query I
 select function_name('transformer');
 ----
 hello
+
+statement error
+select function_name('frogs');

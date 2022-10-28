@@ -75,16 +75,12 @@ namespace duckdb {
         Printer::Print(autocxx_gen_this.ToString());
     }
 
-    void setFunction(ScalarFunctionBuilder &builder,
-                             rust::cxxbridge1::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &,
-                                                       duckdb::Vector &)> function) {
+    void setFunction(ScalarFunctionBuilder &builder, ScalarFunctionT function) {
         builder.function = function;
     }
 
-    void setBind(ScalarFunctionBuilder &builder,
-                         rust::cxxbridge1::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &,
-                                                   duckdb::Vector &)> bind) {
-//        builder.bind = bind;
+    void setBind(ScalarFunctionBuilder &builder, BindFunctionT bind) {
+        builder.bind = bind;
     }
 
     std::unique_ptr<Value> value_from_string(string &s) {
@@ -95,18 +91,32 @@ namespace duckdb {
         autocxx_gen_this.Reference(value);
     }
 
+    Value datachunk_get_value(const DataChunk &datachunk, size_t col, size_t row) {
+        return datachunk.GetValue(col, row);
+    }
+
+    string value_get_string(const unique_ptr<Value> &value) {
+        return value->GetValue<string>();
+    }
+
     void ScalarFunctionBuilder::setReturnType(duckdb::LogicalType &returnType) {
         this->return_type = returnType;
     }
 
-    void ScalarFunctionBuilder::setArguments(const std::vector<duckdb::LogicalType> &arguments) {
-        this->arguments = arguments;
-    }
-
     std::unique_ptr<duckdb::ScalarFunction> ScalarFunctionBuilder::build() {
-//        void (*actual)(duckdb::DataChunk &, duckdb::ExpressionState &, duckdb::Vector &) = FunctionActual;
+//        bind_scalar_function_t pFunction = (bind_scalar_function_t) bind;
+        auto local_function = this->function;
+
         return std::make_unique<duckdb::ScalarFunction>(
-                function_name, arguments, return_type, function
+                function_name, arguments, return_type, [local_function](const duckdb::DataChunk &args, const duckdb::ExpressionState &state, duckdb::Vector &result) {
+                    const char *res = local_function(args, state, result);
+
+                    if (res) {
+                        const std::string &arg = std::string(res);
+                        free((void *) res);
+                        throw std::runtime_error(arg);
+                    }
+                }
         );
     }
 }

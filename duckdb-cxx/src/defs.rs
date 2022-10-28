@@ -5,7 +5,7 @@ use crate::defs::ffi::{duckdb::ConfigurationOption, ToCppString};
 use crate::DatabaseInstance;
 use autocxx::prelude::*;
 use cxx::private::VectorElement;
-use cxx::{type_id, ExternType};
+use cxx::{type_id, CxxString, ExternType};
 use cxx::{CxxVector, SharedPtr};
 use std::any::Any;
 use std::fmt::{Debug, Formatter};
@@ -34,6 +34,7 @@ include_cpp! {
     generate!("duckdb::QueryErrorContext")
     extern_cpp_type!("duckdb::TaskScheduler", crate::TaskScheduler)
     generate!("duckdb::RustCreateFunctionInfo")
+    generate!("duckdb::RustFunctionData")
     generate!("duckdb::create_function_info")
     generate!("duckdb::drop_create_function_info")
     generate!("duckdb::create_logical_type")
@@ -42,9 +43,15 @@ include_cpp! {
     generate!("duckdb::new_duckdb")
     generate!("duckdb::get_instance")
     generate!("duckdb::ExpressionState")
+
     generate!("duckdb::vector_print")
     generate!("duckdb::vector_reference_value")
+
     generate!("duckdb::value_from_string")
+    generate!("duckdb::value_get_string")
+
+    generate!("duckdb::datachunk_get_value")
+    generate!("duckdb::PreservedError")
 }
 
 use self::ffi::duckdb;
@@ -59,12 +66,19 @@ pub type DataChunk = duckdb::DataChunk;
 pub type ExpressionState = duckdb::ExpressionState;
 pub type Vector = duckdb::Vector;
 pub type Value = duckdb::Value;
+pub type PreservedError = duckdb::PreservedError;
 
 pub fn new_duckdb() -> SharedPtr<DuckDB> {
     unsafe { duckdb::new_duckdb() }
 }
 pub fn get_instance(duckdb: &SharedPtr<DuckDB>) -> *mut DatabaseInstance {
     unsafe { duckdb::get_instance(duckdb) }
+}
+
+impl DataChunk {
+    pub fn get_value(&self, col: usize, row: usize) -> impl New<Output = Value> + '_ {
+        unsafe { duckdb::datachunk_get_value(self, col, row) }
+    }
 }
 
 pub struct RustCreateFunctionInfo(pub(crate) *mut CreateFunctionInfo);
@@ -85,6 +99,9 @@ impl Value {
     pub fn from_string(string: &str) -> UniquePtr<Self> {
         unsafe { duckdb::value_from_string(string.into_cpp().pin_mut()) }
     }
+    pub fn get_string(this: UniquePtr<Value>) -> UniquePtr<CxxString> {
+        unsafe { duckdb::value_get_string(&this) }
+    }
 }
 
 impl Vector {
@@ -100,12 +117,6 @@ impl Vector {
     }
 }
 
-pub type ScalarFunctionT = for<'r, 's, 't0> fn(
-    &'r duckdb::DataChunk,
-    &'s duckdb::ExpressionState,
-    Pin<&'t0 mut otherffi::Vector>,
-);
-
 impl Debug for DatabaseInstance {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("DatabaseInstance")
@@ -115,7 +126,7 @@ impl Debug for DatabaseInstance {
 }
 
 impl LogicalType {
-    pub unsafe fn new(id: LogicalTypeId) -> impl autocxx::moveit::new::New<Output = Self> {
+    pub unsafe fn new(id: LogicalTypeId) -> impl New<Output = Self> {
         autocxx::moveit::new::by_raw(move |this| {
             let this = this.get_unchecked_mut().as_mut_ptr();
             otherffi::duckdb_LogicalType_new1_autocxx_wrapper(this, id)
@@ -174,8 +185,11 @@ pub mod otherffi {
         pub(crate) type LogicalType = crate::defs::ffi::duckdb::LogicalType;
         pub(crate) type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
         type ScalarFunctionBuilder = crate::defs::ScalarFunctionBuilder;
+        type ScalarFunction = crate::defs::ScalarFunction;
         pub(crate) type DataChunk = crate::defs::ffi::duckdb::DataChunk;
         type ExpressionState = crate::defs::ExpressionState;
+        type Expression = crate::defs::ffi::duckdb::Expression;
+        type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
         pub(crate) type Vector = crate::defs::ffi::duckdb::Vector;
 
         pub(crate) type Connection;
@@ -196,10 +210,10 @@ pub mod otherffi {
         pub unsafe fn setBind(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
             scalar_function: unsafe extern "C" fn(
-                args: &DataChunk,
-                state: &ExpressionState,
-                result: Pin<&mut Vector>,
-            ),
+                context: &ClientContext,
+                bound_function: &ScalarFunction,
+                arguments: &mut &[UniquePtr<Expression>],
+            ) -> UniquePtr<RustFunctionData>,
         );
         pub unsafe fn setFunction(
             autocxx_gen_this: Pin<&mut ScalarFunctionBuilder>,
@@ -207,7 +221,7 @@ pub mod otherffi {
                 args: &DataChunk,
                 state: &ExpressionState,
                 result: Pin<&mut Vector>,
-            ),
+            ) -> *const c_char,
         );
     }
 }

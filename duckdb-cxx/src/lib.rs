@@ -1,6 +1,8 @@
-use std::ffi::CStr;
+extern crate core;
+
+use std::ffi::{c_char, CStr, CString};
 use std::pin::Pin;
-use std::ptr::null_mut;
+use std::ptr::{null, null_mut};
 
 pub use crate::defs::otherffi::{
     begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, setBind,
@@ -26,7 +28,12 @@ pub fn get_version() -> String {
     }
 }
 
-pub fn binder(_args: &DataChunk, _state: &ExpressionState, result: Pin<&mut Vector>) {
+pub fn binder<'a>(
+    args: &'a DataChunk,
+    _state: &ExpressionState,
+    result: Pin<&mut Vector>,
+) -> *const c_char {
+    use std::ops::Deref;
     let mut value = Value::from_string("hello");
 
     unsafe {
@@ -35,6 +42,17 @@ pub fn binder(_args: &DataChunk, _state: &ExpressionState, result: Pin<&mut Vect
         let result = Pin::get_unchecked_mut(result);
 
         result.reference_value(value);
+    }
+
+    let arg = args.get_value(0, 0).within_unique_ptr();
+
+    let string = Value::get_string(arg);
+    let string = string.deref().to_str().unwrap();
+
+    if string == "frogs" {
+        CString::new("hello").unwrap().into_raw()
+    } else {
+        null()
     }
 }
 

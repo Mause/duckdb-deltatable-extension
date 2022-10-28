@@ -31,20 +31,22 @@ namespace duckdb {
         [[nodiscard]] std::unique_ptr<duckdb::CreateInfo> Copy() const override;
     };
 
+    class RustFunctionData : public FunctionData {};
+
+    typedef rust::Fn<const char*(const duckdb::DataChunk &, const duckdb::ExpressionState &, duckdb::Vector &)> ScalarFunctionT;
+    typedef rust::Fn<unique_ptr<RustFunctionData>(const ClientContext &context, const ScalarFunction &bound_function, rust::Slice<const unique_ptr<Expression>> &arguments)> BindFunctionT;
+
     class ScalarFunctionBuilder {
     public:
         explicit ScalarFunctionBuilder(const std::string &function_name, duckdb::LogicalType &returnType);
         std::unique_ptr<duckdb::ScalarFunction> build();
 
-        void setArguments(const std::vector<duckdb::LogicalType> &arguments);
-
         void setReturnType(duckdb::LogicalType &returnType);
 
         void addArgument(duckdb::LogicalType& arg);
 
-        rust::Fn<void(const duckdb::DataChunk &, const duckdb::ExpressionState &, duckdb::Vector &)> function;
-        rust::Fn<FunctionData(ClientContext &context, ScalarFunction &bound_function,
-                              vector<unique_ptr<Expression>> &arguments)> bind;
+        ScalarFunctionT function;
+        BindFunctionT bind;
     private:
         const std::string &function_name;
         std::vector<duckdb::LogicalType> arguments;
@@ -59,13 +61,11 @@ namespace duckdb {
     void vector_print(const duckdb::Vector& autocxx_gen_this);
     void vector_reference_value(duckdb::Vector& autocxx_gen_this, Value& value);
 
-    void setBind(
-        duckdb::ScalarFunctionBuilder& builder,
-        rust::cxxbridge1::Fn<void(const duckdb::DataChunk&, const duckdb::ExpressionState&, duckdb::Vector&)> bind);
-    void setFunction(
-        duckdb::ScalarFunctionBuilder& builder,
-        rust::cxxbridge1::Fn<void(const duckdb::DataChunk&, const duckdb::ExpressionState&, duckdb::Vector&)> function
-    );
+    void setBind(duckdb::ScalarFunctionBuilder& builder, BindFunctionT bind);
+    void setFunction(duckdb::ScalarFunctionBuilder& builder, ScalarFunctionT function);
+
+    Value datachunk_get_value(const duckdb::DataChunk& datachunk, size_t col, size_t row);
 
     std::unique_ptr<Value> value_from_string(string& s);
+    string value_get_string(const unique_ptr<Value>& value);
 }
