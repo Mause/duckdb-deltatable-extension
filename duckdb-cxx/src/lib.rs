@@ -4,18 +4,15 @@ use std::ffi::CStr;
 use std::pin::Pin;
 use std::ptr::null_mut;
 
-pub use crate::defs::otherffi::{
-    begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, set_bind,
-};
 use autocxx::prelude::*;
 use cxx::let_cxx_string;
-use defs::otherffi::{ClientContext, Expression, RustFunctionData};
 
-pub use crate::defs::otherffi::DatabaseInstance;
 pub use crate::defs::{
-    get_instance, make_error, new_duckdb, DataChunk, DuckDB, Exception, ExceptionType,
-    ExpressionState, LogicalType, LogicalTypeId, PreservedError, QueryErrorContext,
-    RustCreateFunctionInfo, ScalarFunction, ScalarFunctionBuilder, Value, Vector,
+    begin_transaction, commit, duckdb_source_id, get_catalog, get_context, get_instance,
+    make_error, new_connection, new_duckdb, ClientContext, DataChunk, DatabaseInstance, DuckDB,
+    Exception, ExceptionType, Expression, ExpressionState, LogicalType, LogicalTypeId,
+    PreservedError, QueryErrorContext, RustCreateFunctionInfo, RustFunctionData, ScalarFunction,
+    ScalarFunctionBuilder, Value, Vector,
 };
 
 mod defs;

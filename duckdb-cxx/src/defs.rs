@@ -1,9 +1,16 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(clippy::upper_case_acronyms)]
 
-use self::otherffi::{ClientContext, CreateFunctionInfo, Expression, RustFunctionData};
-use crate::defs::ffi::{duckdb::ConfigurationOption, ToCppString};
-use crate::DatabaseInstance;
+use self::ffi::duckdb;
+pub use self::ffi::duckdb::{
+    ClientContext, CreateFunctionInfo, DataChunk, DatabaseInstance, DuckDB, Exception,
+    ExceptionType, Expression, ExpressionState, LogicalType, LogicalTypeId, PreservedError,
+    QueryErrorContext, RustFunctionData, ScalarFunction, ScalarFunctionBuilder, Value, Vector,
+};
+use self::ffi::{duckdb::ConfigurationOption, ToCppString};
+pub use self::otherffi::{
+    begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection,
+};
 use autocxx::prelude::*;
 use cxx::private::VectorElement;
 use cxx::{type_id, CxxString, ExternType};
@@ -55,21 +62,6 @@ include_cpp! {
     generate!("duckdb::Exception")
     generate!("duckdb::ExceptionType")
 }
-
-use self::ffi::duckdb;
-pub use self::ffi::duckdb::{QueryErrorContext, ScalarFunction};
-
-pub type ScalarFunctionBuilder = duckdb::ScalarFunctionBuilder;
-pub type LogicalTypeId = duckdb::LogicalTypeId;
-pub type LogicalType = duckdb::LogicalType;
-pub type DuckDB = duckdb::DuckDB;
-pub type DataChunk = duckdb::DataChunk;
-pub type ExpressionState = duckdb::ExpressionState;
-pub type Vector = duckdb::Vector;
-pub type Value = duckdb::Value;
-pub type PreservedError = duckdb::PreservedError;
-pub type Exception = duckdb::Exception;
-pub type ExceptionType = duckdb::ExceptionType;
 
 pub fn new_duckdb() -> SharedPtr<DuckDB> {
     unsafe { duckdb::new_duckdb() }
@@ -205,25 +197,25 @@ impl ScalarFunctionBuilder {
 }
 
 #[cxx::bridge(namespace = "duckdb")]
-pub mod otherffi {
+mod otherffi {
     unsafe extern "C++" {
         include!("wrapper.hpp");
         include!("duckdb.hpp");
 
-        pub type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
-        pub(crate) type CreateFunctionInfo = crate::defs::ffi::duckdb::CreateFunctionInfo;
-        pub(crate) type Catalog = crate::defs::ffi::duckdb::Catalog;
-        pub(crate) type ClientContext = crate::defs::ffi::duckdb::ClientContext;
-        pub(crate) type LogicalType = crate::defs::ffi::duckdb::LogicalType;
-        pub(crate) type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
+        type DatabaseInstance = crate::defs::ffi::duckdb::DatabaseInstance;
+        type CreateFunctionInfo = crate::defs::ffi::duckdb::CreateFunctionInfo;
+        type Catalog = crate::defs::ffi::duckdb::Catalog;
+        type ClientContext = crate::defs::ffi::duckdb::ClientContext;
+        type LogicalType = crate::defs::ffi::duckdb::LogicalType;
+        type LogicalTypeId = crate::defs::ffi::duckdb::LogicalTypeId;
         type ScalarFunctionBuilder = crate::defs::ScalarFunctionBuilder;
         type ScalarFunction = crate::defs::ScalarFunction;
-        pub(crate) type DataChunk = crate::defs::ffi::duckdb::DataChunk;
+        type DataChunk = crate::defs::ffi::duckdb::DataChunk;
         type ExpressionState = crate::defs::ExpressionState;
-        pub(crate) type Expression = crate::defs::ffi::duckdb::Expression;
-        pub(crate) type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
+        type Expression = crate::defs::ffi::duckdb::Expression;
+        type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
         type PreservedError = crate::defs::ffi::duckdb::PreservedError;
-        pub(crate) type Vector = crate::defs::ffi::duckdb::Vector;
+        type Vector = crate::defs::ffi::duckdb::Vector;
 
         pub(crate) type Connection;
 
