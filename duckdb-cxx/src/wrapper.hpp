@@ -33,7 +33,7 @@ namespace duckdb {
 
     class RustFunctionData : public FunctionData {};
 
-    typedef rust::Fn<const char*(const duckdb::DataChunk &, const duckdb::ExpressionState &, duckdb::Vector &)> ScalarFunctionT;
+    typedef rust::Fn<std::unique_ptr<PreservedError>(const duckdb::DataChunk &, const duckdb::ExpressionState &, duckdb::Vector &)> ScalarFunctionT;
     typedef rust::Fn<unique_ptr<RustFunctionData>(const ClientContext &context, const ScalarFunction &bound_function, rust::Slice<const unique_ptr<Expression>> &arguments)> BindFunctionT;
 
     class ScalarFunctionBuilder {

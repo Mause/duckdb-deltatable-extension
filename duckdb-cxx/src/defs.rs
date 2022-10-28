@@ -51,7 +51,10 @@ include_cpp! {
     generate!("duckdb::value_get_string")
 
     generate!("duckdb::datachunk_get_value")
+
     generate!("duckdb::PreservedError")
+    generate!("duckdb::Exception")
+    generate!("duckdb::ExceptionType")
 }
 
 use self::ffi::duckdb;
@@ -67,6 +70,8 @@ pub type ExpressionState = duckdb::ExpressionState;
 pub type Vector = duckdb::Vector;
 pub type Value = duckdb::Value;
 pub type PreservedError = duckdb::PreservedError;
+pub type Exception = duckdb::Exception;
+pub type ExceptionType = duckdb::ExceptionType;
 
 pub fn new_duckdb() -> SharedPtr<DuckDB> {
     unsafe { duckdb::new_duckdb() }
@@ -78,6 +83,15 @@ pub fn get_instance(duckdb: &SharedPtr<DuckDB>) -> *mut DatabaseInstance {
 impl DataChunk {
     pub fn get_value(&self, col: usize, row: usize) -> impl New<Output = Value> + '_ {
         unsafe { duckdb::datachunk_get_value(self, col, row) }
+    }
+}
+
+pub fn make_error(exception_type: ExceptionType, message: &str) -> UniquePtr<PreservedError> {
+    let message = message.into_cpp();
+    unsafe {
+        let exc = Exception::new1(exception_type, message.as_ref().unwrap()).within_unique_ptr();
+
+        PreservedError::new3(&exc).within_unique_ptr()
     }
 }
 
@@ -190,6 +204,7 @@ pub mod otherffi {
         type ExpressionState = crate::defs::ExpressionState;
         type Expression = crate::defs::ffi::duckdb::Expression;
         type RustFunctionData = crate::defs::ffi::duckdb::RustFunctionData;
+        type PreservedError = crate::defs::ffi::duckdb::PreservedError;
         pub(crate) type Vector = crate::defs::ffi::duckdb::Vector;
 
         pub(crate) type Connection;
@@ -221,7 +236,7 @@ pub mod otherffi {
                 args: &DataChunk,
                 state: &ExpressionState,
                 result: Pin<&mut Vector>,
-            ) -> *const c_char,
+            ) -> UniquePtr<PreservedError>,
         );
     }
 }

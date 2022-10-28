@@ -1,8 +1,8 @@
 extern crate core;
 
-use std::ffi::{c_char, CStr, CString};
+use std::ffi::CStr;
 use std::pin::Pin;
-use std::ptr::{null, null_mut};
+use std::ptr::null_mut;
 
 pub use crate::defs::otherffi::{
     begin_transaction, commit, duckdb_source_id, get_catalog, get_context, new_connection, setBind,
@@ -13,7 +13,8 @@ use cxx::let_cxx_string;
 
 pub use crate::defs::otherffi::DatabaseInstance;
 pub use crate::defs::{
-    DataChunk, ExpressionState, LogicalType, LogicalTypeId, QueryErrorContext,
+    get_instance, make_error, new_duckdb, DataChunk, DuckDB, Exception, ExceptionType,
+    ExpressionState, LogicalType, LogicalTypeId, PreservedError, QueryErrorContext,
     RustCreateFunctionInfo, ScalarFunction, ScalarFunctionBuilder, Value, Vector,
 };
 
@@ -32,7 +33,7 @@ pub fn binder<'a>(
     args: &'a DataChunk,
     _state: &ExpressionState,
     result: Pin<&mut Vector>,
-) -> *const c_char {
+) -> UniquePtr<PreservedError> {
     use std::ops::Deref;
     let mut value = Value::from_string("hello");
 
@@ -50,9 +51,9 @@ pub fn binder<'a>(
     let string = string.deref().to_str().unwrap();
 
     if string == "frogs" {
-        CString::new("hello").unwrap().into_raw()
+        make_error(ExceptionType::IO, "hello world")
     } else {
-        null()
+        UniquePtr::null()
     }
 }
 

@@ -109,12 +109,10 @@ namespace duckdb {
 
         return std::make_unique<duckdb::ScalarFunction>(
                 function_name, arguments, return_type, [local_function](const duckdb::DataChunk &args, const duckdb::ExpressionState &state, duckdb::Vector &result) {
-                    const char *res = local_function(args, state, result);
+                    auto res = local_function(args, state, result);
 
                     if (res) {
-                        const std::string &arg = std::string(res);
-                        free((void *) res);
-                        throw std::runtime_error(arg);
+                        res->Throw();
                     }
                 }
         );
