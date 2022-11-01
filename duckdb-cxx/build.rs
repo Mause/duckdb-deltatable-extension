@@ -6,8 +6,11 @@ fn main() -> miette::Result<()> {
     let cargo_manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let base = Path::new(&cargo_manifest_dir);
     let main_file = "src/defs.rs";
-    let duckdb = base.join("../duckdb/src/include");
+    let duckdb_root = base.join("../duckdb");
+    let duckdb = duckdb_root.join("src/include");
     let src = base.join("src");
+
+    env::set_var("AUTOCXX_ASAN", "1");
 
     let mut b = autocxx_build::Builder::new(main_file, &[&duckdb, &src]).build()?;
     // This assumes all your C++ bindings are in main.rs
@@ -27,7 +30,7 @@ fn main() -> miette::Result<()> {
     cargo_rustc_link_lib("duckdb");
     cargo_rustc_link_lib("ubsan");
     cargo_rustc_link_lib("asan");
-    cargo_rustc_link_search("/home/me/duckdb-deltatable-extension/build/debug/src");
+    cargo_rustc_link_search(duckdb_root.join("build/debug/src"));
     // Add instructions to link to any C++ libraries you need.
     Ok(())
 }
