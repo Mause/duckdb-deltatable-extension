@@ -16,7 +16,7 @@ BUILD_FLAGS=-DEXTENSION_STATIC_BUILD=1 ${OSX_BUILD_UNIVERSAL_FLAG}
 
 pull:
 	git submodule init
-	git submodule update --recursive --remote
+	# git submodule update --recursive --remote
 
 clean:
 	rm -rf build
