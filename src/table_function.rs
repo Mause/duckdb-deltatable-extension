@@ -1,5 +1,6 @@
-use crate::{types, DuckDBType};
+use crate::types;
 use deltalake::open_table;
+use duckdb_extension_framework::constants::LogicalTypeId;
 use duckdb_extension_framework::duckly::{
     duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
     duckdb_malloc, duckdb_vector_size,
@@ -20,7 +21,7 @@ use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
 unsafe fn malloc_struct<T>() -> *mut T {
-    duckdb_malloc(size_of::<T>() as u64).cast::<T>()
+    duckdb_malloc(size_of::<T>()).cast::<T>()
 }
 
 #[repr(C)]
@@ -209,7 +210,7 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
 pub fn build_table_function_def() -> TableFunction {
     let table_function = TableFunction::new();
     table_function.set_name("read_delta");
-    let logical_type = LogicalType::new(DuckDBType::Varchar);
+    let logical_type = LogicalType::new(LogicalTypeId::Varchar);
     table_function.add_parameter(&logical_type);
 
     table_function.set_function(Some(read_delta));
