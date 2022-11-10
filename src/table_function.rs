@@ -3,15 +3,14 @@ use deltalake::open_table;
 use duckdb_extension_framework::constants::LogicalTypeId;
 use duckdb_extension_framework::duckly::{
     duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
-    duckdb_malloc, duckdb_vector_size,
+    duckdb_vector_size,
 };
 use duckdb_extension_framework::{
-    BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
+    malloc_struct, BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
 };
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
 use std::fs::File;
-use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
 use std::slice;
@@ -19,10 +18,6 @@ use tokio::runtime::Runtime;
 
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
-
-unsafe fn malloc_struct<T>() -> *mut T {
-    duckdb_malloc(size_of::<T>()).cast::<T>()
-}
 
 #[repr(C)]
 struct MyBindDataStruct {
