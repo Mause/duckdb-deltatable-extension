@@ -1,4 +1,3 @@
-use crate::types;
 use deltalake::open_table;
 use duckdb_extension_framework::constants::LogicalTypeId;
 use duckdb_extension_framework::duckly::{
@@ -16,6 +15,7 @@ use std::path::Path;
 use std::slice;
 use tokio::runtime::Runtime;
 
+use crate::types::map_type;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
@@ -180,7 +180,7 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
-        let typ = LogicalType::new(types::map_type(field.get_type()));
+        let typ = LogicalType::new(map_type(field.get_type()));
         bind_info.add_result_column(field.get_name(), typ);
     }
 
