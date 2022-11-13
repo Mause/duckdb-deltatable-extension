@@ -1,5 +1,4 @@
 #![allow(dead_code)]
-use duckdb_extension_framework::constants::DuckDBType;
 use duckdb_extension_framework::Database;
 use std::{
     error::Error,

@@ -5,5 +5,11 @@
   ],
   "git-submodules": {
     "enabled": true
-  }
+  },
+  "packageRules": [
+    {
+      "matchPackageNames": ["duckdb"],
+      "automerge": true
+    }
+  ]
 }

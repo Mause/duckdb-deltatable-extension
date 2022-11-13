@@ -1,3 +1,6 @@
+ci:
+    skip: [cargo-check, clippy]
+
 repos:
     - repo: https://github.com/cheshirekow/cmake-format-precommit
       rev: v0.6.13
@@ -5,10 +8,18 @@ repos:
        - id: cmake-format
        - id: cmake-lint
 
+    - repo: local
+      hooks:
+      - id: cargo-fmt
+        name: Rust Formatter
+        description: "A tool for formatting Rust code according to style guidelines."
+        language: rust
+        entry: rustfmt
+        types: [rust]
+
     - repo: https://github.com/doublify/pre-commit-rust
       rev: v1.0
       hooks:
-       - id: fmt
        - id: cargo-check
        - id: clippy
          args:

@@ -1,27 +1,23 @@
-use crate::{types, DuckDBType};
 use deltalake::open_table;
+use duckdb_extension_framework::constants::LogicalTypeId;
 use duckdb_extension_framework::duckly::{
     duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
-    duckdb_malloc, duckdb_vector_size,
+    duckdb_vector_size,
 };
 use duckdb_extension_framework::{
-    BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
+    malloc_struct, BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
 };
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
 use std::fs::File;
-use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
 use std::slice;
 use tokio::runtime::Runtime;
 
+use crate::types::map_type;
 use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
-
-unsafe fn malloc_struct<T>() -> *mut T {
-    duckdb_malloc(size_of::<T>() as u64).cast::<T>()
-}
 
 #[repr(C)]
 struct MyBindDataStruct {
@@ -184,7 +180,7 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
-        let typ = LogicalType::new(types::map_type(field.get_type()));
+        let typ = LogicalType::new(map_type(field.get_type()));
         bind_info.add_result_column(field.get_name(), typ);
     }
 
@@ -209,7 +205,7 @@ unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
 pub fn build_table_function_def() -> TableFunction {
     let table_function = TableFunction::new();
     table_function.set_name("read_delta");
-    let logical_type = LogicalType::new(DuckDBType::Varchar);
+    let logical_type = LogicalType::new(LogicalTypeId::Varchar);
     table_function.add_parameter(&logical_type);
 
     table_function.set_function(Some(read_delta));
