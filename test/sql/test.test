@@ -1,8 +1,5 @@
 statement ok
-force install './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
-
-statement ok
-load deltatable;
+load './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_extension';
 
 query IIIIII
 describe select * from read_delta('./test/simple_table');
