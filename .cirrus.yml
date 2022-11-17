@@ -6,7 +6,17 @@ env:
   CIRRUS_WORKING_DIR: duckdb-deltatable-extension
 
 check_task:
+  install_script: rustup add stable
+  registry_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.lock
+  target_cache:
+    folder: target
+    fingerprint_script:
+      - rustc --version
+      - cat Cargo.lock
   build_script: make debug
   test_script: make test
   binaries_artifacts:
       path: build/debug/extension/duckdb-deltatable-extension/*.duckdb_extension
+  before_cache_script: rm -rf $CARGO_HOME/registry/index
