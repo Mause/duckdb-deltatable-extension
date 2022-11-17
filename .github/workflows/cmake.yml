@@ -32,14 +32,10 @@ jobs:
       with:
         variant: sccache
 
-    - name: Setup Ninja
-      uses: ashutoshvarma/setup-ninja@v1.1
-      with:
-        version: 1.10.0
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     - run: ninja --version
     - run: cmake --version
-    - run: sudo ln -s /usr/bin/ninja /usr/bin/ninja-build
 
     - run: make debug
     - run: make test
