@@ -6,7 +6,9 @@ env:
   CIRRUS_WORKING_DIR: duckdb-deltatable-extension
 
 check_task:
-  install_script: rustup add stable
+  install_script: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+    rustup add stable
   registry_cache:
     folder: $CARGO_HOME/registry
     fingerprint_script: cat Cargo.lock
