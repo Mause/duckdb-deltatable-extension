@@ -21,6 +21,7 @@ jobs:
     runs-on: ${{ matrix.distro }}
     
     strategy:
+      fail-fast: false
       matrix:
         distro: [ubuntu-latest, macos-latest, windows-latest]
 
