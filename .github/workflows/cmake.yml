@@ -39,6 +39,7 @@ jobs:
 
     - run: ninja --version
     - run: cmake --version
+    - run: ln -s /usr/bin/ninja /usr/bin/ninja-build
 
     - run: make debug
     - run: make test
