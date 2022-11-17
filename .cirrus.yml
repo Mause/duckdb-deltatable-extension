@@ -7,7 +7,8 @@ env:
 
 check_task:
   install_script: |
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -y
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > install.sh
+    ./install.sh -y
     rustup add stable
   registry_cache:
     folder: $CARGO_HOME/registry
