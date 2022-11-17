@@ -4,7 +4,7 @@ macos_instance:
 env:
   CIRRUS_CLONE_SUBMODULES: true
   CIRRUS_WORKING_DIR: duckdb-deltatable-extension
-  PATH: $HOME/.cargo/bin:$PATH
+  PATH: $HOME/.cargo/bin:/opt/homebrew/opt/python@3.10/libexec/bin:$PATH
 
 check_task:
   install_script: |
