@@ -4,11 +4,11 @@ macos_instance:
 env:
   CIRRUS_CLONE_SUBMODULES: true
   CIRRUS_WORKING_DIR: duckdb-deltatable-extension
+  PATH: $HOME/.cargo/bin:$PATH
 
 check_task:
   install_script: |
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    source "$HOME/.cargo/env"
   registry_cache:
     folder: $CARGO_HOME/registry
     fingerprint_script: cat Cargo.lock
