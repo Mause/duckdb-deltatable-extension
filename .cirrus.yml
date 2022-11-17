@@ -3,6 +3,7 @@ macos_instance:
 
 env:
   CIRRUS_CLONE_SUBMODULES: true
+  CIRRUS_WORKING_DIR: duckdb-deltatable-extension
 
 check_task:
   build_script: make debug
