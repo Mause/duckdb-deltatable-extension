@@ -1,6 +1,9 @@
 macos_instance:
   image: ghcr.io/cirruslabs/macos-ventura-base:latest
 
+env:
+  CIRRUS_CLONE_SUBMODULES: true
+
 check_task:
   build_script: make debug
   test_script: make test
