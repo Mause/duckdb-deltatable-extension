@@ -30,7 +30,11 @@ jobs:
     - uses: hendrikmuhs/ccache-action@v1.2
       with:
         variant: sccache
-    - run: sudo apt install ninja-build build-essential
+
+    - name: Setup Ninja
+      uses: ashutoshvarma/setup-ninja@master
+      with:
+        version: 1.10.0
 
     - run: make debug
     - run: make test
