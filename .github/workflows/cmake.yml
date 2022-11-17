@@ -37,6 +37,7 @@ jobs:
         version: 1.10.0
 
     - run: ninja --version
+    - run: cmake --version
 
     - run: make debug
     - run: make test
