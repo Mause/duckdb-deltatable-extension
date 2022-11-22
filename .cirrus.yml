@@ -1,0 +1,25 @@
+macos_instance:
+  image: ghcr.io/cirruslabs/macos-ventura-base:latest
+
+env:
+  CIRRUS_CLONE_SUBMODULES: true
+  CIRRUS_WORKING_DIR: duckdb-deltatable-extension
+  PATH: $HOME/.cargo/bin:/opt/homebrew/opt/python@3.10/libexec/bin:$PATH
+
+check_task:
+  install_script: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    brew install python
+  registry_cache:
+    folder: $CARGO_HOME/registry
+    fingerprint_script: cat Cargo.lock
+  target_cache:
+    folder: target
+    fingerprint_script:
+      - rustc --version
+      - cat Cargo.lock
+  build_script: make debug
+  test_script: make test
+  binaries_artifacts:
+      path: build/debug/extension/duckdb-deltatable-extension/*.duckdb_extension
+  before_cache_script: rm -rf $CARGO_HOME/registry/index
