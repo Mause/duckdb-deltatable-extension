@@ -58,7 +58,8 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
             break;
         }
         let reader =
-            SerializedFileReader::new(File::open(root_dir.join(pq_filename)).unwrap()).unwrap();
+            SerializedFileReader::new(File::open(root_dir.join(pq_filename.to_string())).unwrap())
+                .unwrap();
 
         for row in reader {
             for (col_idx, (_key, value)) in row.get_column_iter().enumerate() {
