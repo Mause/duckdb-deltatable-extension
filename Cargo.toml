@@ -12,6 +12,9 @@ parquet = "36.0.0"
 lazy_static = "1.4.0"
 duckdb-extension-framework = "0.4.1"
 
+[[bin]]
+name = "populate"
+
 [lib]
 name = "deltatable"
 crate-type = ["staticlib"]
