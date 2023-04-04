@@ -15,3 +15,11 @@ select * from read_delta('./test/simple_table')
 1	true	foo	2022-10-04
 2	false	baz	2022-10-04
 3	true	bar	2022-10-04
+
+query I
+select function_name('transformer');
+----
+hello
+
+statement error
+select function_name('frogs');

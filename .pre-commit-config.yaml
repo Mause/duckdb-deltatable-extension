@@ -22,3 +22,5 @@ repos:
       hooks:
        - id: cargo-check
        - id: clippy
+         args:
+           - --all-features
