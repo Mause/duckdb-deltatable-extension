@@ -1,11 +1,12 @@
 use deltalake::open_table;
-use duckdb_extension_framework::constants::LogicalTypeId;
-use duckdb_extension_framework::duckly::{
-    duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
-    duckdb_vector_size,
-};
 use duckdb_extension_framework::{
-    malloc_struct, BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
+    duckly::{
+        duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
+        duckdb_vector_size,
+    },
+    malloc_struct,
+    table_functions::{BindInfo, FunctionInfo, InitInfo, TableFunction},
+    DataChunk, LogicalType, LogicalTypeId,
 };
 use parquet::data_type::AsBytes;
 use std::ffi::{c_void, CStr, CString};
@@ -139,7 +140,7 @@ unsafe fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col
 unsafe fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
     let cs = CString::new(bytes).unwrap();
 
-    let result_vector = output.get_vector(col_idx as u64);
+    let result_vector = output.get_vector::<u8>(col_idx as u64);
 
     result_vector.assign_string_element_len(row_idx as u64, cs.as_ptr(), bytes.len() as u64);
 }
@@ -149,7 +150,7 @@ unsafe fn assign<T: 'static>(output: &DataChunk, row_idx: usize, col_idx: usize,
 }
 
 unsafe fn get_column_result_vector<T>(output: &DataChunk, column_index: usize) -> &'static mut [T] {
-    let result_vector = output.get_vector(column_index as u64);
+    let result_vector = output.get_vector::<T>(column_index as u64);
     let ptr = result_vector.get_data().cast::<T>();
     slice::from_raw_parts_mut(ptr, duckdb_vector_size() as usize)
 }
