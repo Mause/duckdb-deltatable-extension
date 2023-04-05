@@ -1203,15 +1203,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "321a15f8332645759f29875b07f8233d16ed8ec1b3582223de81625a9f8506b7"
 dependencies = [
  "ahash",
+ "base64",
+ "brotli",
  "bytes",
  "chrono",
+ "flate2",
  "hashbrown 0.13.2",
+ "lz4",
  "num",
  "num-bigint",
  "paste",
  "seq-macro",
+ "snap",
  "thrift",
  "twox-hash",
+ "zstd",
 ]
 
 [[package]]
