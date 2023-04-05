@@ -9,9 +9,11 @@ use deltalake::{
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::NotATable,
-    SchemaDataType,
+    SchemaDataType, SchemaField,
 };
+use lazy_static::lazy_static;
 use log::{info, LevelFilter};
+use std::collections::HashMap;
 use std::sync::Arc;
 
 #[tokio::main(flavor = "current_thread")]
@@ -74,13 +76,17 @@ async fn obtain_table() -> DeltaTable {
     }
 }
 
-fn create_record_batch() -> RecordBatch {
-    let schema = Schema::new(vec![
+lazy_static! {
+    static ref COLUMNS: Vec<Field> = vec![
         Field::new("x", DataType::Int64, false),
         Field::new("other", DataType::Boolean, false),
         Field::new("third", DataType::Utf8, false),
         Field::new("d", DataType::Date32, false),
-    ]);
+    ];
+}
+
+fn create_record_batch() -> RecordBatch {
+    let schema = Schema::new(COLUMNS.clone());
 
     let day = Date32Type::parse("2022-10-04");
 
@@ -107,30 +113,33 @@ async fn create_table() -> DeltaTable {
         .await
         .create()
         .with_table_name("my_table")
-        .with_column(
-            "x".to_string(),
-            SchemaDataType::primitive("long".to_string()),
-            false,
-            None,
-        )
-        .with_column(
-            "other".to_string(),
-            SchemaDataType::primitive("boolean".to_string()),
-            false,
-            None,
-        )
-        .with_column(
-            "third".to_string(),
-            SchemaDataType::primitive("string".to_string()),
-            false,
-            None,
-        )
-        .with_column(
-            "d".to_string(),
-            SchemaDataType::primitive("date".to_string()),
-            false,
-            None,
+        .with_columns(
+            COLUMNS
+                .clone()
+                .iter()
+                .map(|f| {
+                    SchemaField::new(
+                        f.name().to_string(),
+                        map_type(f.data_type()),
+                        false,
+                        HashMap::new(),
+                    )
+                })
+                .collect::<Vec<SchemaField>>(),
         )
         .await
         .expect("create table")
+}
+
+fn map_type(data_type: &DataType) -> SchemaDataType {
+    SchemaDataType::primitive(
+        match data_type {
+            DataType::Boolean => "boolean",
+            DataType::Int64 => "long",
+            DataType::Date32 => "date",
+            DataType::Utf8 => "string",
+            _ => panic!("unsupported type: {:?}", data_type),
+        }
+        .to_string(),
+    )
 }
