@@ -16,6 +16,8 @@ repos:
         language: rust
         entry: rustfmt
         types: [rust]
+        args:
+          - "--edition=2021"
 
     - repo: https://github.com/doublify/pre-commit-rust
       rev: v1.0
