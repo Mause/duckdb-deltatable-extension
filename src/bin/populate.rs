@@ -1,15 +1,15 @@
-use deltalake::arrow::compute::kernels::cast_utils::Parser;
-use deltalake::arrow::datatypes::Date32Type;
-use deltalake::DeltaTableError::NotATable;
 use deltalake::{
     action::{Action, DeltaOperation, SaveMode},
     arrow::{
-        array::{BooleanArray, Date32Array, Int32Array, StringArray},
-        datatypes::{DataType, Field, Schema},
+        array::{BooleanArray, Date32Array, Int64Array, StringArray},
+        compute::kernels::cast_utils::Parser,
+        datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
     writer::{DeltaWriter, RecordBatchWriter},
-    DeltaOps, DeltaTable, SchemaDataType,
+    DeltaOps, DeltaTable,
+    DeltaTableError::NotATable,
+    SchemaDataType,
 };
 use log::{info, LevelFilter};
 use std::sync::Arc;
@@ -76,7 +76,7 @@ async fn obtain_table() -> DeltaTable {
 
 fn create_record_batch() -> RecordBatch {
     let schema = Schema::new(vec![
-        Field::new("x", DataType::Int32, false),
+        Field::new("x", DataType::Int64, false),
         Field::new("other", DataType::Boolean, false),
         Field::new("third", DataType::Utf8, false),
         Field::new("d", DataType::Date32, false),
@@ -87,7 +87,7 @@ fn create_record_batch() -> RecordBatch {
     RecordBatch::try_new(
         Arc::new(schema),
         vec![
-            Arc::new(Int32Array::from(vec![1, 2, 3])),
+            Arc::new(Int64Array::from(vec![1, 2, 3])),
             Arc::new(BooleanArray::from(vec![true, false, true])),
             Arc::new(StringArray::from(vec!["foo", "baz", "bar"])),
             Arc::new(Date32Array::from(vec![day, day, day])),
@@ -109,7 +109,7 @@ async fn create_table() -> DeltaTable {
         .with_table_name("my_table")
         .with_column(
             "x".to_string(),
-            SchemaDataType::primitive("integer".to_string()),
+            SchemaDataType::primitive("long".to_string()),
             false,
             None,
         )
