@@ -372,9 +372,9 @@ checksum = "ec8a7b6a70fde80372154c65702f00a0f56f3e1c36abbc6c440484be248856db"
 
 [[package]]
 name = "cc"
-version = "1.0.73"
+version = "1.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2fff2a6927b3bb87f9595d67196a70493f627687a71d87a0d692242c33f58c11"
+checksum = "50d30906286121d95be3d479533b458f87493b30a4b5f79a607db8f5d11aa91f"
 dependencies = [
  "jobserver",
 ]
@@ -536,12 +536,13 @@ dependencies = [
 
 [[package]]
 name = "duckdb-extension-framework"
-version = "0.4.1"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c5f55d9c76ea27e306ffcff22313e2d87859c7dc4e0ec6ae231819483ca8d6e3"
+checksum = "dbcf6d6b151af578e14c26dd49efac7f815b72f3e334b57b7180b40cfd586213"
 dependencies = [
  "bindgen",
  "build_script",
+ "cc",
  "num-derive",
  "num-traits",
 ]
