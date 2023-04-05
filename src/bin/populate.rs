@@ -11,15 +11,20 @@ use deltalake::{
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable, SchemaDataType,
 };
+use log::{error, info, LevelFilter};
 use std::sync::Arc;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    pretty_env_logger::formatted_builder()
+        .filter_level(LevelFilter::Info)
+        .init();
+
     let batch = create_record_batch();
 
     let mut table = obtain_table().await;
 
-    println!("table version: {}", table.version());
+    info!("table version: {}", table.version());
 
     let partition_columns = vec!["x".to_string()];
 
@@ -44,27 +49,31 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
 
-    println!("done");
+    info!("done");
 
     Ok(())
 }
 
 async fn obtain_table() -> DeltaTable {
     match mk_ops().await.load().await {
-        Err(err) => match err {
-            Generic(msg) => {
-                panic!("generic error: {:?}", msg)
+        Err(err) => {
+            error!("error loading table: {:?}", err);
+
+            match err {
+                Generic(msg) => {
+                    panic!("generic error: {:?}", msg)
+                }
+                NotATable(msg) => {
+                    info!("NotATable, creating table: {:?}", msg);
+                    create_table().await
+                }
+                _ => {
+                    panic!("error: {:?}", err);
+                }
             }
-            NotATable(msg) => {
-                println!("NotATable, creating table: {:?}", msg);
-                create_table().await
-            }
-            _ => {
-                panic!("error: {:?}", err);
-            }
-        },
+        }
         Ok(table) => {
-            println!("table loaded successfully");
+            info!("table loaded successfully");
             table.0
         }
     }

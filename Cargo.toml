@@ -11,6 +11,8 @@ tokio = { version = "1.26.0", features=['rt'] }
 parquet = "36.0.0"
 lazy_static = "1.4.0"
 duckdb-extension-framework = "0.4.1"
+log = "0.4.17"
+pretty_env_logger = "0.4.0"
 
 [[bin]]
 name = "populate"
