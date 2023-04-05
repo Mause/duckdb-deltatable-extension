@@ -1,18 +1,14 @@
 use deltalake::open_table;
-use duckdb_extension_framework::constants::LogicalTypeId;
-use duckdb_extension_framework::duckly::{
-    duckdb_bind_info, duckdb_data_chunk, duckdb_free, duckdb_function_info, duckdb_init_info,
-    duckdb_vector_size,
-};
-use duckdb_extension_framework::{
-    malloc_struct, BindInfo, DataChunk, FunctionInfo, InitInfo, LogicalType, TableFunction,
+use duckdb::ffi::duckdb_vector_size;
+use duckdb::vtab::{
+    BindInfo, DataChunk, Free, FunctionInfo, InitInfo, Inserter, LogicalType, LogicalTypeId, VTab,
 };
 use parquet::data_type::AsBytes;
-use std::ffi::{c_void, CStr, CString};
+use std::error::Error;
+use std::ffi::{CStr, CString};
 use std::fs::File;
 use std::os::raw::c_char;
 use std::path::Path;
-use std::slice;
 use tokio::runtime::Runtime;
 
 use crate::types::map_type;
@@ -20,27 +16,31 @@ use parquet::file::reader::SerializedFileReader;
 use parquet::record::Field;
 
 #[repr(C)]
-struct MyBindDataStruct {
+pub struct MyBindDataStruct {
     filename: *mut c_char,
+}
+impl Free for MyBindDataStruct {
+    fn free(&mut self) {
+        unsafe {
+            drop(CString::from_raw(self.filename.cast()));
+        }
+    }
 }
 
 #[repr(C)]
-struct MyInitDataStruct {
+pub struct MyInitDataStruct {
     done: bool, // TODO: support more than *vector size* rows
 }
+impl Free for MyInitDataStruct {}
 
 /// # Safety
 ///
 /// .
-#[no_mangle]
-unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_chunk) {
-    let info = FunctionInfo::from(info);
-    let output = DataChunk::from(output);
-
+fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
     let bind_data = info.get_bind_data::<MyBindDataStruct>();
     let mut init_data = info.get_init_data::<MyInitDataStruct>();
 
-    let filename = CStr::from_ptr((*bind_data).filename);
+    let filename = unsafe { CStr::from_ptr((*bind_data).filename) };
 
     let table_result = RUNTIME.block_on(open_table(filename.to_str().unwrap()));
 
@@ -54,8 +54,10 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
     let root_dir = Path::new(filename.to_str().unwrap());
     let mut row_idx: usize = 0;
     for pq_filename in table.get_files_iter() {
-        if (*init_data).done {
-            break;
+        unsafe {
+            if (*init_data).done {
+                break;
+            }
         }
         let reader =
             SerializedFileReader::new(File::open(root_dir.join(pq_filename.to_string())).unwrap())
@@ -63,22 +65,26 @@ unsafe extern "C" fn read_delta(info: duckdb_function_info, output: duckdb_data_
 
         for row in reader {
             for (col_idx, (_key, value)) in row.get_column_iter().enumerate() {
-                populate_column(value, &output, row_idx, col_idx);
+                populate_column(value, output, row_idx, col_idx);
             }
             row_idx += 1;
 
-            assert!(
-                row_idx < duckdb_vector_size().try_into().unwrap(),
-                "overflowed vector: {}",
-                row_idx
-            );
+            unsafe {
+                assert!(
+                    row_idx < duckdb_vector_size().try_into().unwrap(),
+                    "overflowed vector: {}",
+                    row_idx
+                );
+            }
         }
     }
-    (*init_data).done = true;
-    output.set_size(row_idx as u64);
+    unsafe {
+        (*init_data).done = true;
+    }
+    output.set_len(row_idx);
 }
 
-unsafe fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: usize) {
+fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: usize) {
     match value {
         Field::Int(v) => {
             assign(output, row_idx, col_idx, *v);
@@ -136,43 +142,28 @@ unsafe fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col
     }
 }
 
-unsafe fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
+fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
     let cs = CString::new(bytes).unwrap();
 
-    let result_vector = output.get_vector(col_idx as u64);
+    let result_vector = output.flat_vector(col_idx);
 
-    result_vector.assign_string_element_len(row_idx as u64, cs.as_ptr(), bytes.len() as u64);
+    result_vector.insert(row_idx, cs);
 }
 
-unsafe fn assign<T: 'static>(output: &DataChunk, row_idx: usize, col_idx: usize, v: T) {
-    get_column_result_vector::<T>(output, col_idx)[row_idx] = v;
-}
-
-unsafe fn get_column_result_vector<T>(output: &DataChunk, column_index: usize) -> &'static mut [T] {
-    let result_vector = output.get_vector(column_index as u64);
-    let ptr = result_vector.get_data().cast::<T>();
-    slice::from_raw_parts_mut(ptr, duckdb_vector_size() as usize)
-}
-
-unsafe extern "C" fn drop_my_bind_data_struct(v: *mut c_void) {
-    let actual = v.cast::<MyBindDataStruct>();
-    drop(CString::from_raw((*actual).filename.cast()));
-    duckdb_free(v);
+fn assign<T>(output: &DataChunk, row_idx: usize, col_idx: usize, v: T) {
+    output.flat_vector(col_idx).as_mut_slice::<T>()[row_idx] = v;
 }
 
 /// # Safety
 ///
 /// .
-#[no_mangle]
-unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
-    let bind_info = BindInfo::from(bind_info);
+fn read_delta_bind(bind_info: &BindInfo, my_bind_data: *mut MyBindDataStruct) {
     assert_eq!(bind_info.get_parameter_count(), 1);
 
-    let param = bind_info.get_parameter(0);
-    let ptr = param.get_varchar();
-    let cstring = ptr.to_str().unwrap();
+    let string = bind_info.get_parameter(0).to_string();
+    let filename = string.as_str();
 
-    let handle = RUNTIME.block_on(open_table(cstring));
+    let handle = RUNTIME.block_on(open_table(filename));
     if let Err(err) = handle {
         bind_info.set_error(&err.to_string());
         return;
@@ -185,38 +176,39 @@ unsafe extern "C" fn read_delta_bind(bind_info: duckdb_bind_info) {
         bind_info.add_result_column(field.get_name(), typ);
     }
 
-    let my_bind_data = malloc_struct::<MyBindDataStruct>();
-    (*my_bind_data).filename = CString::new(cstring).expect("c string").into_raw();
-
-    bind_info.set_bind_data(my_bind_data.cast(), Some(drop_my_bind_data_struct));
-}
-
-/// # Safety
-///
-/// .
-#[no_mangle]
-unsafe extern "C" fn read_delta_init(info: duckdb_init_info) {
-    let info = InitInfo::from(info);
-
-    let mut my_init_data = malloc_struct::<MyInitDataStruct>();
-    (*my_init_data).done = false;
-    info.set_init_data(my_init_data.cast(), Some(duckdb_free));
-}
-
-pub fn build_table_function_def() -> TableFunction {
-    let table_function = TableFunction::new();
-    table_function.set_name("read_delta");
-    let logical_type = LogicalType::new(LogicalTypeId::Varchar);
-    table_function.add_parameter(&logical_type);
-
-    table_function.set_function(Some(read_delta));
-    table_function.set_init(Some(read_delta_init));
-    table_function.set_bind(Some(read_delta_bind));
-    table_function
+    unsafe {
+        (*my_bind_data).filename = CString::new(filename).expect("c string").into_raw();
+    }
 }
 
 lazy_static::lazy_static! {
     static ref RUNTIME: Runtime = tokio::runtime::Builder::new_current_thread()
             .build()
             .expect("runtime");
+}
+
+pub struct DeltaFunction {}
+impl VTab for DeltaFunction {
+    type InitData = MyInitDataStruct;
+    type BindData = MyBindDataStruct;
+
+    fn bind(bind: &BindInfo, data: *mut Self::BindData) -> duckdb::Result<(), Box<dyn Error>> {
+        read_delta_bind(bind, data);
+
+        Ok(())
+    }
+
+    fn init(_init: &InitInfo, _data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
+        Ok(())
+    }
+
+    fn func(func: &FunctionInfo, output: &mut DataChunk) -> duckdb::Result<(), Box<dyn Error>> {
+        read_delta(func, output);
+
+        Ok(())
+    }
+
+    fn parameters() -> Option<Vec<LogicalType>> {
+        Some(vec![LogicalType::new(LogicalTypeId::Varchar)])
+    }
 }

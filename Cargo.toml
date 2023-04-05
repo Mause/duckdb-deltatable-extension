@@ -13,6 +13,7 @@ lazy_static = "1.4.0"
 duckdb-extension-framework = "0.4.1"
 log = "0.4.20"
 pretty_env_logger = "0.4.0"
+duckdb = { git="https://github.com/wangfenjin/duckdb-rs", features=['vtab'] }
 
 [[bin]]
 name = "populate"

@@ -1,5 +1,5 @@
 use deltalake::SchemaDataType;
-use duckdb_extension_framework::constants::LogicalTypeId;
+use duckdb::vtab::LogicalTypeId;
 
 /// Maps Deltalake types to DuckDB types
 pub fn map_type(p0: &SchemaDataType) -> LogicalTypeId {
