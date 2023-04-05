@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-deltalake = { version = "0.8.0", features = ["datafusion"] }
-tokio = { version = "1.26.0", features=['rt'] }
-parquet = "36.0.0"
+deltalake = { version = "0.8.0", features = ["datafusion"], default-features = false }
+tokio = { version = "1.26.0", features=['rt'], default-features = false }
+parquet = { version = "36.0.0", default-features = false }
 lazy_static = "1.4.0"
 duckdb-extension-framework = "0.4.1"
 log = "0.4.17"
