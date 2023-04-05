@@ -4,9 +4,9 @@ load './build/debug/extension/duckdb-deltatable-extension/deltatable.duckdb_exte
 query IIIIII
 describe select * from read_delta('./test/simple_table');
 ----
-x	BIGINT	YES		NULL	NULL	NULL
-other	BOOLEAN	YES		NULL	NULL	NULL
-third	VARCHAR	YES		NULL	NULL	NULL
+x	BIGINT	YES	NULL	NULL	NULL
+other	BOOLEAN	YES	NULL	NULL	NULL
+third	VARCHAR	YES	NULL	NULL	NULL	
 d	DATE	YES	NULL	NULL	NULL
 
 query IIII
