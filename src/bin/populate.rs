@@ -1,6 +1,6 @@
 use deltalake::arrow::compute::kernels::cast_utils::Parser;
 use deltalake::arrow::datatypes::Date32Type;
-use deltalake::DeltaTableError::{Generic, NotATable};
+use deltalake::DeltaTableError::NotATable;
 use deltalake::{
     action::{Action, DeltaOperation, SaveMode},
     arrow::{
@@ -11,7 +11,7 @@ use deltalake::{
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable, SchemaDataType,
 };
-use log::{error, info, LevelFilter};
+use log::{info, LevelFilter};
 use std::sync::Arc;
 
 #[tokio::main(flavor = "current_thread")]
@@ -55,26 +55,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn obtain_table() -> DeltaTable {
-    match mk_ops().await.load().await {
-        Err(err) => {
-            error!("error loading table: {:?}", err);
+    let mut table = mk_ops().await.0;
 
-            match err {
-                Generic(msg) => {
-                    panic!("generic error: {:?}", msg)
-                }
-                NotATable(msg) => {
-                    info!("NotATable, creating table: {:?}", msg);
-                    create_table().await
-                }
-                _ => {
-                    panic!("error: {:?}", err);
-                }
+    match table.load().await {
+        Err(err) => match err {
+            NotATable(msg) => {
+                info!("NotATable, creating table: {:?}", msg);
+                create_table().await
             }
-        }
-        Ok(table) => {
+            _ => {
+                panic!("error: {:?}", err);
+            }
+        },
+        Ok(_) => {
             info!("table loaded successfully");
-            table.0
+            table
         }
     }
 }
