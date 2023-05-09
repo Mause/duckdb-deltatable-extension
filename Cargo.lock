@@ -530,7 +530,7 @@ dependencies = [
  "duckdb-extension-framework",
  "lazy_static",
  "log",
- "parquet 37.0.0",
+ "parquet 39.0.0",
  "pretty_env_logger",
  "tokio",
 ]
@@ -1199,9 +1199,9 @@ dependencies = [
 
 [[package]]
 name = "parquet"
-version = "37.0.0"
+version = "39.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5022d98333271f4ca3e87bab760498e61726bf5a6ca919123c80517e20ded29"
+checksum = "b0a1e6fa27f09ebddba280f5966ef435f3ac4d74cfc3ffe370fd3fd59c2e004d"
 dependencies = [
  "ahash",
  "base64",
