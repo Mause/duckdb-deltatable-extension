@@ -1,12 +1,10 @@
 use deltalake::{
-    action::{Action, DeltaOperation, SaveMode},
     arrow::{
         array::{BooleanArray, Date32Array, Int64Array, StringArray},
         compute::kernels::cast_utils::Parser,
         datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
-    writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::NotATable,
     SchemaDataType, SchemaField,
@@ -24,54 +22,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let batch = create_record_batch();
 
-    let mut table = obtain_table().await;
+    obtain_table().await;
 
-    info!("table version: {}", table.version());
-
-    let partition_columns = vec!["x".to_string()];
-
-    let mut writer = RecordBatchWriter::for_table(&table).expect("for_table");
-    writer.write(batch).await.expect("write");
-    let actions: Vec<Action> = writer
-        .flush()
-        .await?
-        .iter()
-        .map(|add| Action::add(add.clone()))
-        .collect();
-    let mut transaction = table.create_transaction(None);
-    transaction.add_actions(actions);
-    transaction
-        .commit(
-            Some(DeltaOperation::Write {
-                mode: SaveMode::Append,
-                partition_by: Some(partition_columns.clone()),
-                predicate: None,
-            }),
-            None,
-        )
-        .await?;
+    mk_ops().await.write(vec![batch]).await?;
 
     info!("done");
 
     Ok(())
 }
 
-async fn obtain_table() -> DeltaTable {
+async fn obtain_table() {
     let mut table = mk_ops().await.0;
 
     match table.load().await {
         Err(err) => match err {
             NotATable(msg) => {
                 info!("NotATable, creating table: {:?}", msg);
-                create_table().await
+                create_table().await;
             }
             _ => {
                 panic!("error: {:?}", err);
             }
         },
         Ok(_) => {
-            info!("table loaded successfully");
-            table
+            info!("table loaded successfully, version {}", table.version());
         }
     }
 }
@@ -127,6 +101,7 @@ async fn create_table() -> DeltaTable {
                 })
                 .collect::<Vec<SchemaField>>(),
         )
+        .with_partition_columns(vec!["x"])
         .await
         .expect("create table")
 }
