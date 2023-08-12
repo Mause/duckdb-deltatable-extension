@@ -1,3 +1,6 @@
 [doc.extern-map.registries]
 crates-io = "https://docs.rs/"
 
+[registries.crates-io]
+protocol = "git"
+
