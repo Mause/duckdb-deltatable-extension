@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 deltalake = { version = "0.9.0", features = ["arrow", 'parquet'], default-features = false }
 tokio = { version = "1.30.0", features=['rt'], default-features = false }
-parquet = { version = "37.0.0", features=["snap", "brotli", "flate2", "lz4", "zstd", "base64"], default-features = false }
+parquet = { version = "46.0.0", features=["snap", "brotli", "flate2", "lz4", "zstd", "base64"], default-features = false }
 lazy_static = "1.4.0"
 duckdb-extension-framework = "0.4.1"
 log = "0.4.19"
