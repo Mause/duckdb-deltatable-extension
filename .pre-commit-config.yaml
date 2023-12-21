@@ -1,12 +1,16 @@
 ci:
-    skip: [cargo-check, clippy]
+    skip: [cargo-check, clippy, cargo-fmt]
 
 repos:
-    - repo: https://github.com/cheshirekow/cmake-format-precommit
-      rev: v0.6.13
+    - repo: https://github.com/BlankSpruce/gersemi
+      rev: 0.9.4
       hooks:
-       - id: cmake-format
-       - id: cmake-lint
+      - id: gersemi
+
+    - repo: https://github.com/cmake-lint/cmake-lint
+      rev: 1.4.2
+      hooks:
+        - id: cmakelint
 
     - repo: local
       hooks:
