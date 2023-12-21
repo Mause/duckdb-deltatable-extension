@@ -40,7 +40,7 @@ jobs:
         env:
           RUSTDOCFLAGS: --enable-index-page -Zunstable-options
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: ./_site/doc
 
