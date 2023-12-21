@@ -1,5 +1,5 @@
 ci:
-    skip: [cargo-check, clippy]
+    skip: [cargo-check, clippy, cargo-fmt]
 
 repos:
     - repo: https://github.com/BlankSpruce/gersemi
