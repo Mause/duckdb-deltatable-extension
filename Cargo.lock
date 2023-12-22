@@ -791,7 +791,6 @@ dependencies = [
  "duckdb",
  "duckdb-loadable-macros",
  "lazy_static",
- "libduckdb-sys",
  "log",
  "parquet 37.0.0",
  "pretty_env_logger",
