@@ -5,11 +5,11 @@
 
 #include "wrapper.h"
 
-const char* deltatable_version_rust(void);
+const char* libhello_ext_version(void);
 void deltatable_init_rust(void* db);
 
 DUCKDB_EXTENSION_API const char* deltatable_version() {
-    return deltatable_version_rust();
+    return libhello_ext_version();
 }
 
 DUCKDB_EXTENSION_API void deltatable_init(void* db) {
