@@ -64,7 +64,8 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
                 .unwrap();
 
         for row in reader {
-            for (col_idx, (_key, value)) in row.get_column_iter().enumerate() {
+            for (col_idx, (_key, value)) in row.expect("missing row?").get_column_iter().enumerate()
+            {
                 populate_column(value, output, row_idx, col_idx);
             }
             row_idx += 1;
