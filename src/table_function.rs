@@ -147,6 +147,8 @@ fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
 
     let result_vector = output.flat_vector(col_idx);
 
+    assert_eq!(result_vector.logical_type().id(), LogicalTypeId::Varchar);
+
     result_vector.insert(row_idx, cs);
 }
 
