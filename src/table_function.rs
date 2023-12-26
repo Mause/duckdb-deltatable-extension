@@ -175,7 +175,7 @@ fn read_delta_bind(bind_info: &BindInfo, my_bind_data: *mut MyBindDataStruct) {
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
     for field in schema.get_fields() {
-        let typ = LogicalType::new(map_type(field.get_type()));
+        let typ = map_type(field.get_type());
         bind_info.add_result_column(field.get_name(), typ);
     }
 
