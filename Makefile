@@ -20,6 +20,7 @@ pull:
 
 clean:
 	rm -rf build
+	rm -rf test/simple_table
 	cargo clean
 
 debug: pull
