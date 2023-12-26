@@ -14,7 +14,7 @@ pub fn map_type(p0: &SchemaDataType) -> LogicalType {
             LogicalType::map(&map_type(p0.get_key_type()), &map_type(p0.get_value_type()))
         }
         _ => {
-            panic!("unknown type");
+            panic!("unknown type: {:?}", p0);
         }
     }
 }
