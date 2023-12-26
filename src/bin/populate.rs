@@ -1,5 +1,4 @@
 use deltalake::{
-    action::{Action, DeltaOperation, SaveMode},
     arrow::{
         array::{BooleanArray, Date32Array, Int64Array, StringArray},
         compute::kernels::cast_utils::Parser,
@@ -7,6 +6,7 @@ use deltalake::{
         record_batch::RecordBatch,
     },
     operations::transaction::commit,
+    protocol::{Action, DeltaOperation, SaveMode},
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::NotATable,
