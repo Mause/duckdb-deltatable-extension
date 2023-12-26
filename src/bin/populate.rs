@@ -6,6 +6,7 @@ use deltalake::{
         datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
+    operations::transaction::commit,
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::NotATable,
@@ -13,8 +14,8 @@ use deltalake::{
 };
 use lazy_static::lazy_static;
 use log::{info, LevelFilter};
-use std::collections::HashMap;
 use std::sync::Arc;
+use std::{collections::HashMap, ops::Deref};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -24,7 +25,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let batch = create_record_batch();
 
-    let mut table = obtain_table().await;
+    let table = obtain_table().await;
 
     info!("table version: {}", table.version());
 
@@ -38,18 +39,19 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .iter()
         .map(|add| Action::add(add.clone()))
         .collect();
-    let mut transaction = table.create_transaction(None);
-    transaction.add_actions(actions);
-    transaction
-        .commit(
-            Some(DeltaOperation::Write {
-                mode: SaveMode::Append,
-                partition_by: Some(partition_columns.clone()),
-                predicate: None,
-            }),
-            None,
-        )
-        .await?;
+
+    commit(
+        table.object_store().deref(),
+        &actions,
+        DeltaOperation::Write {
+            mode: SaveMode::Append,
+            partition_by: Some(partition_columns.clone()),
+            predicate: None,
+        },
+        table.get_state(),
+        None,
+    )
+    .await?;
 
     info!("done");
 
