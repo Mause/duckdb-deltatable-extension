@@ -123,7 +123,7 @@ async fn create_table() -> DeltaTable {
                     SchemaField::new(
                         f.name().to_string(),
                         map_type(f.data_type()),
-                        false,
+                        f.is_nullable(),
                         HashMap::new(),
                     )
                 })
