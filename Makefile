@@ -55,7 +55,7 @@ test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
 test/simple_table:
-	cargo run populate
+	cargo run
 
 test: debug test/simple_table
 	./build/debug/test/unittest --test-dir . "[sql]"
