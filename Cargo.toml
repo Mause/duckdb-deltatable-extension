@@ -14,6 +14,7 @@ log = "0.4.20"
 pretty_env_logger = "0.5.0"
 duckdb = { version = "0.10.1", features=['vtab'] }
 duckdb-loadable-macros = "0.1.0"
+argparse-rs = "0.1.0"
 
 [[bin]]
 name = "populate"
