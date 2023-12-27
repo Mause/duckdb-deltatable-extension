@@ -139,7 +139,7 @@ fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: u
             set_bytes(output, row_idx, col_idx, v.as_bytes());
         }
         // TODO: support more types
-        _ => todo!("{}", value),
+        _ => todo!("unsupported type: {}", value),
     }
 }
 
