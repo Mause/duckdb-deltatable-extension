@@ -1,7 +1,8 @@
 use deltalake::open_table;
 use duckdb::ffi::duckdb_vector_size;
 use duckdb::vtab::{
-    BindInfo, DataChunk, Free, FunctionInfo, InitInfo, Inserter, LogicalType, LogicalTypeId, VTab,
+    BindInfo, DataChunk, FlatVector, Free, FunctionInfo, InitInfo, Inserter, LogicalType,
+    LogicalTypeId, VTab,
 };
 use parquet::data_type::AsBytes;
 use std::error::Error;
@@ -86,75 +87,74 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
 }
 
 fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: usize) {
+    let mut flat_vec = output.flat_vector(col_idx);
     match value {
         Field::Int(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Bool(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Long(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Date(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Float(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Byte(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Short(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::UByte(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::UShort(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::UInt(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::ULong(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Double(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         // Field::Decimal(v) => {
         //     assign(&output, row_row, idx, duckdb_double_to_hugeint(*v));
         // },
         Field::TimestampMillis(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::TimestampMicros(v) => {
-            assign(output, row_idx, col_idx, *v);
+            assign(&mut flat_vec, row_idx, *v);
         }
         Field::Bytes(v) => {
-            set_bytes(output, row_idx, col_idx, v.as_bytes());
+            set_bytes(flat_vec, row_idx, v.as_bytes());
         }
         Field::Str(v) => {
-            set_bytes(output, row_idx, col_idx, v.as_bytes());
+            set_bytes(flat_vec, row_idx, v.as_bytes());
         }
         // TODO: support more types
         _ => todo!("unsupported type: {}", value),
     }
 }
 
-fn set_bytes(output: &DataChunk, row_idx: usize, col_idx: usize, bytes: &[u8]) {
+fn set_bytes(result_vector: FlatVector, row_idx: usize, bytes: &[u8]) {
     let cs = CString::new(bytes).unwrap();
-
-    let result_vector = output.flat_vector(col_idx);
 
     assert_eq!(result_vector.logical_type().id(), LogicalTypeId::Varchar);
 
     result_vector.insert(row_idx, cs);
 }
 
-fn assign<T>(output: &DataChunk, row_idx: usize, col_idx: usize, v: T) {
-    output.flat_vector(col_idx).as_mut_slice::<T>()[row_idx] = v;
+fn assign<T>(flat_vec: &mut FlatVector, row_idx: usize, v: T) {
+    flat_vec.as_mut_slice::<T>()[row_idx] = v;
 }
 
 /// # Safety
