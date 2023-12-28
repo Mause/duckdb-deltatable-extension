@@ -38,7 +38,7 @@ pull:
 
 clean:
 	rm -rf build
-	rm -rf test/simple_table
+	rm -rf test/simple_table*
 	cargo clean
 
 debug:
@@ -55,9 +55,14 @@ test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
 test/simple_table:
-	cargo run
+	cargo run -- test/simple_table
 
-test: debug test/simple_table
+test/simple_table_2:
+	cargo run -- test/simple_table_2 --with-list
+
+simple_tables: test/simple_table test/simple_table_2
+
+test: debug simple_tables
 	./build/debug/test/unittest --test-dir . "[sql]"
 
 update:
