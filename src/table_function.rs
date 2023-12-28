@@ -1,13 +1,14 @@
 use deltalake::open_table;
-use duckdb::ffi::duckdb_vector_size;
+use duckdb::ffi::{duckdb_decimal, duckdb_malloc, duckdb_vector_size};
 use duckdb::vtab::{
     BindInfo, DataChunk, FlatVector, Free, FunctionInfo, InitInfo, Inserter, LogicalType,
     LogicalTypeId, VTab,
 };
-use parquet::data_type::AsBytes;
+use parquet::data_type::{AsBytes, Decimal};
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fs::File;
+use std::mem::size_of;
 use std::os::raw::c_char;
 use std::path::Path;
 use tokio::runtime::Runtime;
@@ -131,9 +132,25 @@ fn populate_column(
         Field::Double(v) => {
             assign(flat_vec, row_idx, *v);
         }
-        // Field::Decimal(v) => {
-        //     assign(&output, row_row, idx, duckdb_double_to_hugeint(*v));
-        // },
+        Field::Decimal(v) => match v {
+            Decimal::Int64 {
+                value,
+                scale,
+                precision,
+            } => {
+                assign(
+                    flat_vec,
+                    row_idx,
+                    create_decimal(
+                        value[0] as i64,
+                        value[1] as u64,
+                        (*precision).try_into().expect("precision"),
+                        (*scale).try_into().expect("scale"),
+                    ),
+                );
+            }
+            _ => todo!("decimal"),
+        },
         Field::TimestampMillis(v) => {
             assign(flat_vec, row_idx, *v);
         }
@@ -149,6 +166,21 @@ fn populate_column(
         // TODO: support more types
         _ => todo!("unsupported type: {}", value),
     }
+}
+
+fn create_decimal(upper: i64, lower: u64, scale: u8, width: u8) -> *mut duckdb_decimal {
+    let dec = malloc_c::<duckdb_decimal>();
+    unsafe {
+        (*dec).value.upper = upper;
+        (*dec).value.lower = lower;
+        (*dec).scale = scale;
+        (*dec).width = width;
+    }
+    dec
+}
+
+fn malloc_c<T>() -> *mut T {
+    unsafe { duckdb_malloc(size_of::<T>()).cast() }
 }
 
 fn set_bytes(result_vector: &mut FlatVector, row_idx: usize, bytes: &[u8]) {

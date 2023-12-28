@@ -2,8 +2,8 @@ use argparse_rs::{ArgParser, ArgType};
 use deltalake::{
     arrow::{
         array::{
-            Array, ArrayRef, BooleanArray, Date32Array, Int32Builder, Int64Array, ListBuilder,
-            StringArray, StructArray,
+            Array, ArrayRef, BooleanArray, Date32Array, Decimal128Builder, Int32Builder,
+            Int64Array, ListBuilder, StringArray, StructArray,
         },
         compute::kernels::cast_utils::Parser,
         datatypes::{DataType, Date32Type, Field, Schema},
@@ -24,6 +24,7 @@ struct Config {
     filename: String,
     with_list: bool,
     with_struct: bool,
+    with_decimal: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -57,6 +58,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "with struct will include a struct column",
         ArgType::Flag,
     );
+    parser.add_opt(
+        "with-decimal",
+        None,
+        'd',
+        false,
+        "with decimal will include a decimal column",
+        ArgType::Flag,
+    );
     let parsed = parser.parse(args().collect::<Vec<String>>().iter())?;
 
     let get = |g: &str| {
@@ -74,6 +83,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         filename: parsed.get("filename").expect("missing filename"),
         with_list: get("with-list"),
         with_struct: get("with-struct"),
+        with_decimal: get("with-decimal"),
     };
 
     let batch = create_record_batch(&config);
@@ -171,6 +181,9 @@ fn get_columns(config: &Config) -> Vec<Field> {
             true,
         ));
     }
+    if config.with_decimal {
+        vector.push(Field::new("decimal", DataType::Decimal128(10, 2), false));
+    }
 
     vector
 }
@@ -221,6 +234,16 @@ fn create_record_batch(config: &Config) -> RecordBatch {
             ),
         ])));
     };
+    if config.with_decimal {
+        let mut builder = Decimal128Builder::new()
+            .with_precision_and_scale(10, 2)
+            .expect("with_precision_and_scale");
+        builder.append_value(1);
+        builder.append_value(2);
+        builder.append_value(3);
+        let decimal = builder.finish();
+        columns.push(Arc::new(decimal));
+    }
 
     RecordBatch::try_new(Arc::new(schema), columns).unwrap()
 }
@@ -258,17 +281,16 @@ fn map_type(data_type: &DataType) -> SchemaDataType {
         || matches!(data_type, DataType::Boolean)
         || matches!(data_type, DataType::Utf8)
     {
-        SchemaDataType::primitive(
-            match data_type {
-                DataType::Boolean => "boolean",
-                DataType::Int64 => "long",
-                DataType::Int32 => "integer",
-                DataType::Date32 => "date",
-                DataType::Utf8 => "string",
-                _ => panic!("unsupported primitive type: {:?}", data_type),
-            }
-            .to_string(),
-        )
+        let var_name = &match data_type {
+            DataType::Boolean => "boolean".to_string(),
+            DataType::Int64 => "long".to_string(),
+            DataType::Int32 => "integer".to_string(),
+            DataType::Date32 => "date".to_string(),
+            DataType::Utf8 => "string".to_string(),
+            DataType::Decimal128(precision, scale) => format!("({},{})", precision, scale),
+            _ => todo!("unsupported primitive type: {:?}", data_type),
+        };
+        SchemaDataType::primitive(var_name.to_owned())
     } else if data_type.is_nested() {
         match data_type {
             DataType::Struct(fields) => {
