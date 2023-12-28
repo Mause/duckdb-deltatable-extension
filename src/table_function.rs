@@ -67,7 +67,8 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
         for row in reader {
             for (col_idx, (_key, value)) in row.expect("missing row?").get_column_iter().enumerate()
             {
-                populate_column(value, output, row_idx, col_idx);
+                let mut flat_vec = output.flat_vector(col_idx);
+                populate_column(value, &mut flat_vec, output, row_idx, col_idx);
             }
             row_idx += 1;
 
@@ -86,53 +87,58 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
     output.set_len(row_idx);
 }
 
-fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: usize) {
-    let mut flat_vec = output.flat_vector(col_idx);
+fn populate_column(
+    value: &Field,
+    flat_vec: &mut FlatVector,
+    _output: &DataChunk,
+    row_idx: usize,
+    _col_idx: usize,
+) {
     match value {
         Field::Int(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Bool(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Long(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Date(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Float(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Byte(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Short(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::UByte(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::UShort(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::UInt(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::ULong(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Double(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         // Field::Decimal(v) => {
         //     assign(&output, row_row, idx, duckdb_double_to_hugeint(*v));
         // },
         Field::TimestampMillis(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::TimestampMicros(v) => {
-            assign(&mut flat_vec, row_idx, *v);
+            assign(flat_vec, row_idx, *v);
         }
         Field::Bytes(v) => {
             set_bytes(flat_vec, row_idx, v.as_bytes());
@@ -145,7 +151,7 @@ fn populate_column(value: &Field, output: &DataChunk, row_idx: usize, col_idx: u
     }
 }
 
-fn set_bytes(result_vector: FlatVector, row_idx: usize, bytes: &[u8]) {
+fn set_bytes(result_vector: &mut FlatVector, row_idx: usize, bytes: &[u8]) {
     let cs = CString::new(bytes).unwrap();
 
     assert_eq!(result_vector.logical_type().id(), LogicalTypeId::Varchar);
