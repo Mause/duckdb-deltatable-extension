@@ -4,6 +4,10 @@
 #include "duckdb.hpp"
 
 extern "C" {
+/*
+ * because we link twice (once to the rust library, and once to the duckdb
+ * library) we need a bridge to export the rust symbols this is that bridge
+ */
 const char *deltatable_version_rust(void);
 void deltatable_init_rust(void *db);
 
