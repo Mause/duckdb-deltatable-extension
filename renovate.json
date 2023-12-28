@@ -8,7 +8,9 @@
   },
   "packageRules": [
     {
-      "matchPackageNames": ["duckdb"],
+      "matchPackageNames": [
+        "duckdb"
+      ],
       "automerge": true
     }
   ]
