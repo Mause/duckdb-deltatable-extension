@@ -2,17 +2,35 @@
 
 all: release
 
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJ_DIR := $(dir $(MKFILE_PATH))
+
 OSX_BUILD_UNIVERSAL_FLAG=
 ifeq (${OSX_BUILD_UNIVERSAL}, 1)
 	OSX_BUILD_UNIVERSAL_FLAG=-DOSX_BUILD_UNIVERSAL=1
 endif
 
+#### Enable Ninja as generator
 ifeq ($(GEN),ninja)
-	GENERATOR=-G "Ninja"
-	FORCE_COLOR=-DFORCE_COLORED_OUTPUT=1
+	GENERATOR=-G "Ninja" -DFORCE_COLORED_OUTPUT=1
 endif
 
-BUILD_FLAGS=-DEXTENSION_STATIC_BUILD=1 ${OSX_BUILD_UNIVERSAL_FLAG}
+EXT_NAME=deltatable
+
+#### Configuration for this extension
+EXTENSION_NAME=DELTATABLE
+EXTENSION_FLAGS=\
+-DDUCKDB_EXTENSION_NAMES="deltatable" \
+-DDUCKDB_EXTENSION_${EXTENSION_NAME}_PATH="$(PROJ_DIR)" \
+-DDUCKDB_EXTENSION_${EXTENSION_NAME}_LOAD_TESTS=1 \
+-DDUCKDB_EXTENSION_${EXTENSION_NAME}_INCLUDE_PATH="$(PROJ_DIR)src/include" \
+-DDUCKDB_EXTENSION_${EXTENSION_NAME}_TEST_PATH="$(PROJ_DIR)test/sql"
+
+BUILD_FLAGS=-DEXTENSION_STATIC_BUILD=1 $(EXTENSION_FLAGS) ${EXTRA_EXTENSIONS_FLAG} $(OSX_BUILD_FLAG) $(TOOLCHAIN_FLAGS)
+CLIENT_FLAGS:=
+
+CLIENT_FLAGS=-DDUCKDB_EXTENSION_${EXTENSION_NAME}_SHOULD_LINK=1
+
 
 pull:
 	git submodule init
@@ -23,17 +41,15 @@ clean:
 	rm -rf test/simple_table
 	cargo clean
 
-debug: pull
-	mkdir -p build/debug && \
-	cd build/debug && \
-	cmake $(GENERATOR) $(FORCE_COLOR) -DCMAKE_BUILD_TYPE=Debug ${BUILD_FLAGS} ../../duckdb/CMakeLists.txt -DEXTERNAL_EXTENSION_DIRECTORIES=../../duckdb-deltatable-extension -B. && \
-	cmake --build . --config Debug
+debug:
+	mkdir -p  build/debug && \
+	cmake $(GENERATOR) $(BUILD_FLAGS) $(CLIENT_FLAGS) -DCMAKE_BUILD_TYPE=Debug -S ./duckdb/ -B build/debug && \
+	cmake --build build/debug --config Debug
 
-release: pull
+release:
 	mkdir -p build/release && \
-	cd build/release && \
-	cmake $(GENERATOR) $(FORCE_COLOR) -DCMAKE_BUILD_TYPE=RelWithDebInfo ${BUILD_FLAGS} ../../duckdb/CMakeLists.txt -DEXTERNAL_EXTENSION_DIRECTORIES=../../duckdb-deltatable-extension -B. && \
-	cmake --build . --config Release
+	cmake $(GENERATOR) $(BUILD_FLAGS)  $(CLIENT_FLAGS)  -DCMAKE_BUILD_TYPE=Release -S ./duckdb/ -B build/release && \
+	cmake --build build/release --config Release
 
 test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"

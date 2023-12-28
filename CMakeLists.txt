@@ -21,14 +21,27 @@ fetchcontent_makeavailable(Corrosion)
 
 corrosion_import_crate(MANIFEST_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Cargo.toml)
 
-set(ALL_SOURCES src/wrapper.h src/wrapper.c)
+set(EXTENSION_NAME ${TARGET_NAME}_extension)
+set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
-build_loadable_extension(${TARGET_NAME} ${ALL_SOURCES})
+include_directories(src/include)
 
-set(LIB_NAME ${TARGET_NAME}_loadable_extension)
+set(EXTENSION_SOURCES src/wrapper.h src/wrapper.c)
 
-set_target_properties(${LIB_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+build_static_extension(${TARGET_NAME} ${EXTENSION_SOURCES})
+build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})
+
+set_target_properties(${LOADABLE_EXTENSION_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(
-    ${LIB_NAME}
+    ${LOADABLE_EXTENSION_NAME}
     "${CMAKE_CURRENT_BINARY_DIR}/lib${TARGET_NAME}.a"
+)
+
+install(
+    TARGETS ${EXTENSION_NAME}
+    EXPORT "${DUCKDB_EXPORT_SET}"
+    LIBRARY
+    DESTINATION "${INSTALL_LIB_DIR}"
+    ARCHIVE
+    DESTINATION "${INSTALL_LIB_DIR}"
 )
