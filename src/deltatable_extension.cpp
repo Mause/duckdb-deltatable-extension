@@ -11,12 +11,11 @@ extern "C" {
 const char *deltatable_version_rust(void);
 void deltatable_init_rust(void *db);
 
-DUCKDB_EXTENSION_API void
-duckdb_deltatable_extension_init(duckdb::DatabaseInstance &db) {
+DUCKDB_EXTENSION_API void deltatable_init(duckdb::DatabaseInstance &db) {
   deltatable_init_rust((void *)&db);
 }
 
-DUCKDB_EXTENSION_API const char *duckdb_deltatable_extension_version() {
+DUCKDB_EXTENSION_API const char *deltatable_version() {
   return deltatable_version_rust();
 }
 };
