@@ -8,15 +8,17 @@ extern "C" {
  * because we link twice (once to the rust library, and once to the duckdb
  * library) we need a bridge to export the rust symbols this is that bridge
  */
-const char *deltatable_version_rust(void);
 void deltatable_init_rust(void *db);
+
+// this name is to work around a bug in duckdb-rs
+const char *libhello_ext_version(void);
 
 DUCKDB_EXTENSION_API void deltatable_init(duckdb::DatabaseInstance &db) {
   deltatable_init_rust((void *)&db);
 }
 
 DUCKDB_EXTENSION_API const char *deltatable_version() {
-  return deltatable_version_rust();
+  return libhello_ext_version();
 }
 };
 
