@@ -13,5 +13,5 @@ cmake_install.cmake
 CTestTestfile.cmake
 DuckDBExports.cmake
 Testing/
-test/simple_table
+test/simple_table*
 duckdb-extension-framework/target
