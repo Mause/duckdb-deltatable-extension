@@ -57,6 +57,9 @@ test_release: release
 test/simple_table:
 	cargo run populate
 
+debug_python:
+	echo 'python tests are disabled'
+
 test: debug test/simple_table
 	./build/debug/test/unittest --test-dir . "[sql]"
 
