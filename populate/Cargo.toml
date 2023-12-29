@@ -1,0 +1,11 @@
+[package]
+name = "populate"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+deltalake = { version = "0.17.1", features = [], default-features = false }
+lazy_static = "1.4.0"
+log = "0.4.20"
+pretty_env_logger = "0.5.0"
+tokio = "1.35.1"
