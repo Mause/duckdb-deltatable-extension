@@ -3,7 +3,7 @@ ci:
 
 repos:
     - repo: https://github.com/BlankSpruce/gersemi
-      rev: 0.10.0
+      rev: 0.11.0
       hooks:
       - id: gersemi
 
