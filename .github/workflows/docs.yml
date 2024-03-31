@@ -31,7 +31,6 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: sccache
-      - run: rustup install nightly
       - name: Build with Cargo
         run: |
           cargo doc --lib --no-deps --all --all-features --document-private-items --target-dir ./_site
