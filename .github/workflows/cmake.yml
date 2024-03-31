@@ -30,7 +30,10 @@ jobs:
     - uses: hendrikmuhs/ccache-action@v1.2
       with:
         variant: sccache
-    #- run: sudo apt install ninja-build build-essential
+    - run: sudo apt install ninja-build build-essential
+      if: matrix.os == "ubuntu-latest"
+    - run: brew install ninja-build
+      if: matrix.os == "macos-14"
 
     - run: make debug
     - run: make test
