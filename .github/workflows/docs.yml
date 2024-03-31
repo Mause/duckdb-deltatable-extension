@@ -34,7 +34,7 @@ jobs:
       - run: rustup install nightly
       - name: Build with Cargo
         run: |
-          cargo +nightly doc --lib --no-deps --all --all-features --document-private-items --target-dir ./_site -Zrustdoc-map
+          cargo doc --lib --no-deps --all --all-features --document-private-items --target-dir ./_site -Zrustdoc-map
           ls _site
         env:
           RUSTDOCFLAGS: --enable-index-page -Zunstable-options
