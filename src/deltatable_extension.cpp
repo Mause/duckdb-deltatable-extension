@@ -9,14 +9,14 @@ extern "C" {
  * library) we need a bridge to export the rust symbols this is that bridge
  */
 void deltatable_init_rust(void *db);
-const char *deltatable_version(void);
+const char *deltatable_version_rust(void);
 
 DUCKDB_EXTENSION_API void deltatable_init(duckdb::DatabaseInstance &db) {
   deltatable_init_rust((void *)&db);
 }
 
 DUCKDB_EXTENSION_API const char *deltatable_version() {
-  return deltatable_version();
+  return deltatable_version_rust();
 }
 };
 
