@@ -17,7 +17,11 @@ jobs:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-14, ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v4
@@ -26,7 +30,7 @@ jobs:
     - uses: hendrikmuhs/ccache-action@v1.2
       with:
         variant: sccache
-    - run: sudo apt install ninja-build build-essential
+    #- run: sudo apt install ninja-build build-essential
 
     - run: make debug
     - run: make test
