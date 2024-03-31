@@ -16,7 +16,7 @@ permissions:
 
 # Allow one concurrent deployment
 concurrency:
-  group: "pages"
+  group: ${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -31,13 +31,10 @@ jobs:
       - uses: hendrikmuhs/ccache-action@v1.2
         with:
           variant: sccache
-      - run: rustup install nightly
       - name: Build with Cargo
         run: |
-          cargo +nightly doc --lib --no-deps --all --all-features --document-private-items --target-dir ./_site -Zrustdoc-map
+          cargo doc --lib --no-deps --all --all-features --document-private-items --target-dir ./_site
           ls _site
-        env:
-          RUSTDOCFLAGS: --enable-index-page -Zunstable-options
       - name: Fix permissions
         run: |
           chmod -c -R +rX "_site/" | while read line; do
