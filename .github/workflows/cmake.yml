@@ -32,7 +32,7 @@ jobs:
         variant: sccache
     - run: sudo apt install ninja-build build-essential
       if: ${{ matrix.os == 'ubuntu-latest' }}
-    - run: brew install ninja-build
+    - run: brew install ninja
       if: ${{ matrix.os == 'macos-14' }}
 
     - run: make debug
