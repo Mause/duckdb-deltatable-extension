@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 deltalake = { version = "0.16.5", features = ["arrow", 'parquet'], default-features = false }
-tokio = { version = "1.36.0", features=['rt'], default-features = false }
+tokio = { version = "1.37.0", features=['rt'], default-features = false }
 parquet = { version = "50.0.0", features=["snap", "brotli", "flate2", "lz4", "zstd", "base64"], default-features = false }
 lazy_static = "1.4.0"
 log = "0.4.20"
