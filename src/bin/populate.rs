@@ -48,7 +48,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             partition_by: Some(partition_columns.clone()),
             predicate: None,
         },
-        None,
+        Some(&table.state.expect("no state")),
         None,
     )
     .await
