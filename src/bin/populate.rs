@@ -129,7 +129,7 @@ async fn create_table() -> DeltaTable {
 fn map_type(data_type: &DataType) -> SchemaDataType {
     SchemaDataType::Primitive(match data_type {
         DataType::Boolean => PrimitiveType::Boolean,
-        DataType::Int64 => PrimitiveType::Integer,
+        DataType::Int64 => PrimitiveType::Long,
         DataType::Date32 => PrimitiveType::Date,
         DataType::Utf8 => PrimitiveType::String,
         _ => panic!("unsupported type: {:?}", data_type),
