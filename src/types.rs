@@ -1,57 +1,55 @@
-use deltalake::SchemaDataType;
+use deltalake::kernel::{DataType as SchemaDataType, PrimitiveType};
 use duckdb::vtab::LogicalTypeId;
 
 /// Maps Deltalake types to DuckDB types
 pub fn map_type(p0: &SchemaDataType) -> LogicalTypeId {
     match p0 {
-        SchemaDataType::primitive(name) => match name.as_str() {
-            "string" => {
+        SchemaDataType::Primitive(name) => match name {
+            PrimitiveType::String => {
                 //: utf8
                 LogicalTypeId::Varchar
             }
-            "long" => {
+            PrimitiveType::Long => {
                 // undocumented, i64?
                 LogicalTypeId::Bigint
             }
-            "integer" => {
+            PrimitiveType::Integer => {
                 //: i32
                 LogicalTypeId::Integer
             }
-            "short" => {
+            PrimitiveType::Short => {
                 //: i16
                 LogicalTypeId::Smallint
             }
-            "byte" => {
+            PrimitiveType::Byte => {
                 //: i8
                 LogicalTypeId::Tinyint
             }
-            "float" => {
+            PrimitiveType::Float => {
                 //: f32
                 LogicalTypeId::Float
             }
-            "double" => {
+            PrimitiveType::Double => {
                 //: f64
                 LogicalTypeId::Double
             }
-            "boolean" => {
+            PrimitiveType::Boolean => {
                 //: bool
                 LogicalTypeId::Boolean
             }
-            "binary" => {
+            PrimitiveType::Binary => {
                 //: a sequence of binary data
                 LogicalTypeId::Varchar
             }
-            "date" => {
+            PrimitiveType::Date => {
                 //: A calendar date, represented as a year-month-day triple without a timezone
                 LogicalTypeId::Date
             }
-            "timestamp" => {
+            PrimitiveType::Timestamp => {
                 //: Microsecond precision timestamp without a timezone
                 LogicalTypeId::TimestampMs
             }
-            _ => {
-                panic!("unsupported primitive: {}", name);
-            }
+            _ => panic!("unsupported primitive: {}", name),
         },
         _ => {
             panic!("unknown type");
