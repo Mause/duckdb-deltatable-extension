@@ -38,7 +38,7 @@ impl Free for MyInitDataStruct {}
 /// .
 fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
     let bind_data = info.get_bind_data::<MyBindDataStruct>();
-    let mut init_data = info.get_init_data::<MyInitDataStruct>();
+    let init_data = info.get_init_data::<MyInitDataStruct>();
 
     let filename = unsafe { CStr::from_ptr((*bind_data).filename) };
 
