@@ -9,15 +9,18 @@ use deltalake::{
         datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
+    kernel::{
+        Action, ArrayType, DataType as SchemaDataType, MapType, PrimitiveType, Protocol,
+        StructField, StructType,
+    },
     operations::transaction::commit,
-    protocol::{Action, DeltaOperation, SaveMode},
+    protocol::{DeltaOperation, SaveMode},
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::{self, NotATable},
-    SchemaDataType, SchemaField, SchemaTypeArray, SchemaTypeMap, SchemaTypeStruct,
 };
 use log::{info, LevelFilter};
-use std::{collections::HashMap, env::args, ops::Deref};
+use std::{env::args, ops::Deref};
 use std::{slice::Iter, sync::Arc};
 
 struct Config {
@@ -112,21 +115,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .flush()
         .await?
         .iter()
-        .map(|add| Action::add(add.clone()))
+        .map(|add| Action::Add(add.clone()))
         .collect();
 
     commit(
-        table.object_store().deref(),
+        table.log_store().deref(),
         &actions,
         DeltaOperation::Write {
             mode: SaveMode::Append,
             partition_by: Some(partition_columns.clone()),
             predicate: None,
         },
-        table.get_state(),
+        Some(&table.state.expect("no state")),
         None,
     )
-    .await?;
+    .await
+    .expect("commit failed");
 
     info!("done");
 
@@ -147,6 +151,7 @@ async fn obtain_table(config: &Config) -> DeltaTable {
             }
         },
         Ok(_) => {
+            assert_eq!(table.protocol().unwrap().min_writer_version, 0);
             info!("table loaded successfully");
             table
         }
@@ -259,18 +264,18 @@ async fn create_table(config: &Config) -> DeltaTable {
         .await
         .create()
         .with_table_name("my_table")
+        .with_actions([Action::Protocol(Protocol::new(0, 0))])
         .with_columns(
             get_columns(config)
                 .iter()
                 .map(|f| {
-                    SchemaField::new(
+                    StructField::new(
                         f.name().to_string(),
                         map_type(f.data_type()),
                         f.is_nullable(),
-                        HashMap::new(),
                     )
                 })
-                .collect::<Vec<SchemaField>>(),
+                .collect::<Vec<StructField>>(),
         )
         .await
         .expect("create table")
@@ -281,35 +286,34 @@ fn map_type(data_type: &DataType) -> SchemaDataType {
         || matches!(data_type, DataType::Boolean)
         || matches!(data_type, DataType::Utf8)
     {
-        let var_name = &match data_type {
-            DataType::Boolean => "boolean".to_string(),
-            DataType::Int64 => "long".to_string(),
-            DataType::Int32 => "integer".to_string(),
-            DataType::Date32 => "date".to_string(),
-            DataType::Utf8 => "string".to_string(),
-            DataType::Decimal128(precision, scale) => format!("({},{})", precision, scale),
+        SchemaDataType::Primitive(match data_type {
+            DataType::Boolean => PrimitiveType::Boolean,
+            DataType::Int64 => PrimitiveType::Long,
+            DataType::Int32 => PrimitiveType::Integer,
+            DataType::Date32 => PrimitiveType::Date,
+            DataType::Utf8 => PrimitiveType::String,
+            DataType::Decimal128(precision, scale) => PrimitiveType::Decimal(*precision, *scale),
             _ => todo!("unsupported primitive type: {:?}", data_type),
-        };
-        SchemaDataType::primitive(var_name.to_owned())
+        })
     } else if data_type.is_nested() {
         match data_type {
-            DataType::Struct(fields) => {
-                SchemaDataType::r#struct(SchemaTypeStruct::new(create_schema_fields(fields.iter())))
-            }
+            DataType::Struct(fields) => SchemaDataType::Struct(Box::new(StructType::new(
+                create_schema_fields(fields.iter()),
+            ))),
             DataType::Map(field_type, _sortable) => {
                 let key_type = map_type(field_type.data_type());
                 let value_type = map_type(field_type.data_type());
 
-                SchemaDataType::map(SchemaTypeMap::new(
-                    Box::new(key_type),
-                    Box::new(value_type),
+                SchemaDataType::Map(Box::new(MapType::new(
+                    key_type,
+                    value_type,
                     field_type.is_nullable(),
-                ))
+                )))
             }
-            DataType::List(element_type) => SchemaDataType::array(SchemaTypeArray::new(
-                Box::new(map_type(element_type.data_type())),
+            DataType::List(element_type) => SchemaDataType::Array(Box::new(ArrayType::new(
+                map_type(element_type.data_type()),
                 element_type.is_nullable(),
-            )),
+            ))),
             _ => panic!("unsupported nested type: {:?}", data_type),
         }
     } else {
@@ -320,14 +324,13 @@ fn map_type(data_type: &DataType) -> SchemaDataType {
     }
 }
 
-fn create_schema_fields(fields: Iter<Arc<Field>>) -> Vec<SchemaField> {
+fn create_schema_fields(fields: Iter<Arc<Field>>) -> Vec<StructField> {
     fields
         .map(|a| {
-            SchemaField::new(
+            StructField::new(
                 a.name().to_string(),
                 map_type(a.data_type()),
                 a.is_nullable(),
-                HashMap::new(),
             )
         })
         .collect()

@@ -43,7 +43,7 @@ impl Free for MyInitDataStruct {}
 /// .
 fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
     let bind_data = info.get_bind_data::<MyBindDataStruct>();
-    let mut init_data = info.get_init_data::<MyInitDataStruct>();
+    let init_data = info.get_init_data::<MyInitDataStruct>();
 
     let filename = unsafe { CStr::from_ptr((*bind_data).filename) };
 
@@ -58,7 +58,7 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
 
     let root_dir = Path::new(filename.to_str().unwrap());
     let mut row_idx: usize = 0;
-    for pq_filename in table.get_files_iter() {
+    for pq_filename in table.get_files_iter().unwrap() {
         unsafe {
             if (*init_data).done {
                 break;
@@ -225,9 +225,9 @@ fn read_delta_bind(bind_info: &BindInfo, my_bind_data: *mut MyBindDataStruct) {
 
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
-    for field in schema.get_fields() {
-        let typ = map_type(field.get_type());
-        bind_info.add_result_column(field.get_name(), typ);
+    for field in schema.fields() {
+        let typ = map_type(field.data_type());
+        bind_info.add_result_column(field.name(), typ);
     }
 
     unsafe {
