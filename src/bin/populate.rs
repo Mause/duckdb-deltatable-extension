@@ -5,7 +5,7 @@ use deltalake::{
         datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
-    kernel::{Action, DataType as SchemaDataType, PrimitiveType, StructField},
+    kernel::{Action, DataType as SchemaDataType, PrimitiveType, Protocol, StructField},
     operations::transaction::commit,
     protocol::{DeltaOperation, SaveMode},
     writer::{DeltaWriter, RecordBatchWriter},
@@ -73,6 +73,7 @@ async fn obtain_table() -> DeltaTable {
             }
         },
         Ok(_) => {
+            assert_eq!(table.protocol().unwrap().min_writer_version, 0);
             info!("table loaded successfully");
             table
         }
@@ -116,6 +117,7 @@ async fn create_table() -> DeltaTable {
         .await
         .create()
         .with_table_name("my_table")
+        .with_actions([Action::Protocol(Protocol::new(0, 0))])
         .with_columns(
             COLUMNS
                 .clone()
