@@ -5,17 +5,17 @@ use deltalake::{
         datatypes::{DataType, Date32Type, Field, Schema},
         record_batch::RecordBatch,
     },
+    kernel::{Action, DataType as SchemaDataType, PrimitiveType, StructField},
     operations::transaction::commit,
-    protocol::{Action, DeltaOperation, SaveMode},
+    protocol::{DeltaOperation, SaveMode},
     writer::{DeltaWriter, RecordBatchWriter},
     DeltaOps, DeltaTable,
     DeltaTableError::NotATable,
-    SchemaDataType, SchemaField,
 };
 use lazy_static::lazy_static;
 use log::{info, LevelFilter};
+use std::ops::Deref;
 use std::sync::Arc;
-use std::{collections::HashMap, ops::Deref};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,18 +37,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .flush()
         .await?
         .iter()
-        .map(|add| Action::add(add.clone()))
+        .map(|add| Action::Add(add.clone()))
         .collect();
 
     commit(
-        table.object_store().deref(),
+        table.log_store().deref(),
         &actions,
         DeltaOperation::Write {
             mode: SaveMode::Append,
             partition_by: Some(partition_columns.clone()),
             predicate: None,
         },
-        table.get_state(),
+        None,
         None,
     )
     .await?;
@@ -119,29 +119,19 @@ async fn create_table() -> DeltaTable {
             COLUMNS
                 .clone()
                 .iter()
-                .map(|f| {
-                    SchemaField::new(
-                        f.name().to_string(),
-                        map_type(f.data_type()),
-                        false,
-                        HashMap::new(),
-                    )
-                })
-                .collect::<Vec<SchemaField>>(),
+                .map(|f| StructField::new(f.name().to_string(), map_type(f.data_type()), false))
+                .collect::<Vec<StructField>>(),
         )
         .await
         .expect("create table")
 }
 
 fn map_type(data_type: &DataType) -> SchemaDataType {
-    SchemaDataType::primitive(
-        match data_type {
-            DataType::Boolean => "boolean",
-            DataType::Int64 => "long",
-            DataType::Date32 => "date",
-            DataType::Utf8 => "string",
-            _ => panic!("unsupported type: {:?}", data_type),
-        }
-        .to_string(),
-    )
+    SchemaDataType::Primitive(match data_type {
+        DataType::Boolean => PrimitiveType::Boolean,
+        DataType::Int64 => PrimitiveType::Integer,
+        DataType::Date32 => PrimitiveType::Date,
+        DataType::Utf8 => PrimitiveType::String,
+        _ => panic!("unsupported type: {:?}", data_type),
+    })
 }

@@ -1,47 +1,56 @@
-use deltalake::SchemaDataType;
+use deltalake::kernel::{DataType as SchemaDataType, PrimitiveType};
 use duckdb::vtab::LogicalTypeId;
 
 /// Maps Deltalake types to DuckDB types
 pub fn map_type(p0: &SchemaDataType) -> LogicalTypeId {
     match p0 {
-        SchemaDataType::primitive(name) => {
-            if name == "string" {
+        SchemaDataType::Primitive(name) => match name {
+            PrimitiveType::String => {
                 //: utf8
                 LogicalTypeId::Varchar
-            } else if name == "long" {
+            }
+            PrimitiveType::Long => {
                 // undocumented, i64?
                 LogicalTypeId::Bigint
-            } else if name == "integer" {
+            }
+            PrimitiveType::Integer => {
                 //: i32
                 LogicalTypeId::Integer
-            } else if name == "short" {
+            }
+            PrimitiveType::Short => {
                 //: i16
                 LogicalTypeId::Smallint
-            } else if name == "byte" {
+            }
+            PrimitiveType::Byte => {
                 //: i8
                 LogicalTypeId::Tinyint
-            } else if name == "float" {
+            }
+            PrimitiveType::Float => {
                 //: f32
                 LogicalTypeId::Float
-            } else if name == "double" {
+            }
+            PrimitiveType::Double => {
                 //: f64
                 LogicalTypeId::Double
-            } else if name == "boolean" {
+            }
+            PrimitiveType::Boolean => {
                 //: bool
                 LogicalTypeId::Boolean
-            } else if name == "binary" {
+            }
+            PrimitiveType::Binary => {
                 //: a sequence of binary data
                 LogicalTypeId::Varchar
-            } else if name == "date" {
+            }
+            PrimitiveType::Date => {
                 //: A calendar date, represented as a year-month-day triple without a timezone
                 LogicalTypeId::Date
-            } else if name == "timestamp" {
+            }
+            PrimitiveType::Timestamp => {
                 //: Microsecond precision timestamp without a timezone
                 LogicalTypeId::TimestampMs
-            } else {
-                panic!("unsupported primitive: {}", name);
             }
-        }
+            _ => panic!("unsupported primitive: {}", name),
+        },
         _ => {
             panic!("unknown type");
         }
