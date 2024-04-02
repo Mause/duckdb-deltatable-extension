@@ -6,12 +6,5 @@
 
   "git-submodules": {
     "enabled": true
-  },
-  "hostRules": [
-    {
-      "hostType": "git-tags",
-      "hostName": "api.github.com"
-
-    }
-  ]
+  }
 }
