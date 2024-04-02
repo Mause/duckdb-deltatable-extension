@@ -15,8 +15,7 @@ include(FetchContent)
 fetchcontent_declare(
     Corrosion
     GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
-    GIT_TAG
-        v0.2.1 # Optionally specify a commit hash, version tag or branch here
+    GIT_TAG v0.4
 )
 fetchcontent_makeavailable(Corrosion)
 
