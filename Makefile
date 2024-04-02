@@ -55,10 +55,10 @@ test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
 test/simple_table:
-	cargo run -- test/simple_table
+	cargo run --bin populate -- test/simple_table
 
 test/simple_table_2:
-	cargo run -- test/simple_table_2 --with-list
+	cargo run --bin populate -- test/simple_table_2 --with-list
 
 simple_tables: test/simple_table test/simple_table_2
 
