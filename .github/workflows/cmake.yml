@@ -14,6 +14,7 @@ env:
   CARGO_TERM_COLOR: always
   SCCACHE_GHA_ENABLED: "true"
   SCCACHE_CACHE_SIZE: 5GB
+  NINJA_FLAGS: '-l 1'
 
 jobs:
   build:
@@ -36,6 +37,11 @@ jobs:
       if: ${{ matrix.os == 'ubuntu-latest' }}
     - run: brew install ninja
       if: ${{ matrix.os == 'macos-14' }}
+
+    - uses: rui314/setup-mold@v1
+      with:
+        mold-version: 1.1.1
+        make-default: true
 
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@v1.3.1
