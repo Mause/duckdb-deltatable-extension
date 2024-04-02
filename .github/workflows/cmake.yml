@@ -38,6 +38,11 @@ jobs:
     - run: brew install ninja
       if: ${{ matrix.os == 'macos-14' }}
 
+    - uses: rui314/setup-mold@v1
+      with:
+        mold-version: 1.1.1
+        make-default: true
+
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@v1.3.1
       if: ${{ matrix.os == 'ubuntu-latest' }}
