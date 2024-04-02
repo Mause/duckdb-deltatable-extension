@@ -40,6 +40,7 @@ jobs:
 
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@v1.3.1
+      if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - run: make test
 
@@ -47,4 +48,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: extension
-        path: ${{github.workspace}}/build/debug/extension/duckdb-deltatable-extension/*.duckdb_extension
+        path: ${{github.workspace}}/build/debug/repository
+        if-no-files-found: error
