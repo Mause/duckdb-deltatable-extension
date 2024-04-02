@@ -1,7 +1,7 @@
 # DuckDB Deltatable Extension
 
 ```sql
-select * from read_deltatable("table")
+select * from read_delta("table")
 ```
 
 This is a purely experimental extension, not supported by the DuckDB Labs/Foundation, and is not suitable for production use. 
