@@ -62,15 +62,10 @@ jobs:
 
     needs: build
 
-    # Grant GITHUB_TOKEN the permissions required to make a Pages deployment
-    permissions:
-      pages: write      # to deploy to Pages
-      id-token: write   # to verify the deployment originates from an appropriate source
-
     # Deploy to the github-pages environment
     environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      name: netlify
+      url: ${{ steps.deployment.outputs.deploy-url }}
 
     steps:
       - uses: actions/download-artifact@v4
@@ -78,7 +73,6 @@ jobs:
           pattern: extension-*
           path: _site
           merge-multiple: true
-      - run: mv repository _site
       - name: Deploy to Netlify
         uses: nwtgck/actions-netlify@v3.0
         with:
@@ -93,10 +87,4 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
-      - name: Deploy to GitHub Pages
-        id: deployment
-        if: false
-        uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
-        with:
-          artifact_name: ''
 
