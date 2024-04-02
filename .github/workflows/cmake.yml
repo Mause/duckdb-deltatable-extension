@@ -13,6 +13,7 @@ env:
   RUSTC_WRAPPER: sccache
   CARGO_TERM_COLOR: always
   SCCACHE_GHA_ENABLED: "true"
+  NINJA_FLAGS: '-l 1'
 
 jobs:
   build:
