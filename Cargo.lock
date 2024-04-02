@@ -88,6 +88,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "argparse-rs"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86b7375967bd48e55045ca1a346d2babeb5735405010a922325b5e2262f65310"
+
+[[package]]
 name = "arrayvec"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -861,6 +867,7 @@ dependencies = [
 name = "duckdb-deltatable"
 version = "0.1.0"
 dependencies = [
+ "argparse-rs",
  "deltalake",
  "duckdb",
  "duckdb-loadable-macros",
