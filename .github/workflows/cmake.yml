@@ -98,5 +98,5 @@ jobs:
         if: false
         uses: actions/deploy-pages@v4 # or specific "vX.X.X" version tag for this action
         with:
-          artifact_name
+          artifact_name: ''
 
