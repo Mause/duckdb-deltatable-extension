@@ -43,4 +43,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: extension
-        path: ${{github.workspace}}/build/debug/extension/duckdb-deltatable-extension/*.duckdb_extension
+        path: ${{github.workspace}}/build/debug/extension/deltatable/*.duckdb_extension
+        if-no-files-found: error
