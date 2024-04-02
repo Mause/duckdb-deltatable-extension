@@ -11,22 +11,35 @@ env:
   BUILD_TYPE: Debug
   GEN: ninja
   RUSTC_WRAPPER: sccache
+  CARGO_TERM_COLOR: always
+  SCCACHE_GHA_ENABLED: "true"
+  SCCACHE_CACHE_SIZE: 5GB
 
 jobs:
   build:
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, ubuntu-latest]
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - uses: hendrikmuhs/ccache-action@v1.2
-      with:
-        variant: sccache
+    - uses: mozilla-actions/sccache-action@v0.0.4
     - run: sudo apt install ninja-build build-essential
+      if: ${{ matrix.os == 'ubuntu-latest' }}
+    - run: brew install ninja
+      if: ${{ matrix.os == 'macos-14' }}
+
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@v1.3.1
+      if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - run: make debug
     - run: make test
@@ -35,4 +48,5 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: extension
-        path: ${{github.workspace}}/build/debug/extension/duckdb-deltatable-extension/*.duckdb_extension
+        path: ${{github.workspace}}/build/debug/repository
+        if-no-files-found: error
