@@ -3,15 +3,17 @@
   "extends": [
     "config:base"
   ],
-  "git-submodules": {
-    "enabled": true
-  },
-  "packageRules": [
+  "git-submodules": { "enabled": false },
+  "customManagers": [
     {
-      "matchPackageNames": [
-        "duckdb"
+      "customType": "regex",
+      "fileMatch": [ "(^|/)\\.gitmodules$" ],
+      "datasourceTemplate": "git-tags",
+      "matchStrings": [
+        "url = (?<depName>.*?)#(?<currentValue>.*?)\\s"
       ],
-      "automerge": true
+      "versioningTemplate": "semver",
+      "depTypeTemplate": "dependencies"
     }
   ]
 }
