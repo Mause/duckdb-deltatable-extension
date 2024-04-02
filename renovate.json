@@ -3,17 +3,11 @@
   "extends": [
     "config:base"
   ],
-  "git-submodules": { "enabled": false },
-  "customManagers": [
+  "git-submodules": { "enabled": true},
+  "hostRules": [
     {
-      "customType": "regex",
-      "fileMatch": [ "(^|/)\\.gitmodules$" ],
-      "datasourceTemplate": "git-tags",
-      "matchStrings": [
-        "url = (?<depName>.*?)#(?<currentValue>.*?)\\s"
-      ],
-      "versioningTemplate": "semver",
-      "depTypeTemplate": "dependencies"
+      "hostType": "git-tags",
+      "hostName": "api.github.com"
     }
   ]
 }
