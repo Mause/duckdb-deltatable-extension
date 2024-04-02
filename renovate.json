@@ -4,7 +4,9 @@
     "config:base"
   ],
 
-  "git-submodules": { "enabled": true},
+  "git-submodules": {
+    "enabled": true
+  },
   "hostRules": [
     {
       "hostType": "git-tags",
