@@ -73,7 +73,9 @@ jobs:
           pattern: extension-*
           path: _site
           merge-multiple: true
+      - run: ls
       - name: Deploy to Netlify
+        id: deployment
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './_site'
