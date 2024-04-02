@@ -40,6 +40,7 @@ jobs:
 
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@v1.3.1
+      if: ${{ matrix.os == 'ubuntu-latest' }}
 
     - run: make test
 
