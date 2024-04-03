@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.22)
 cmake_policy(VERSION 3.22)
 set(TARGET_NAME deltatable)
+enable_testing()
 project(${TARGET_NAME} VERSION 0.0.1)
 include_directories(src/include)
 
@@ -46,4 +47,19 @@ install(
     EXPORT "${DUCKDB_EXPORT_SET}"
     LIBRARY DESTINATION "${INSTALL_LIB_DIR}"
     ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+)
+
+add_custom_target(
+    simple_table
+    COMMAND $<TARGET_FILE:populate> ARGS "test/simple_test"
+)
+add_custom_target(
+    simple_table_2
+    COMMAND $<TARGET_FILE:populate> ARGS "test/simple_table_2 --with-list"
+)
+
+add_test(
+    NAME simple_table_test
+    COMMAND $<TARGET_FILE:unittest> --test-dir . [sql]
+    COMMAND_EXPAND_LISTS
 )

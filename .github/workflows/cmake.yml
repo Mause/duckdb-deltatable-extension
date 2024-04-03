@@ -8,7 +8,7 @@ on:
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
   GEN: ninja
   RUSTC_WRAPPER: sccache
   CARGO_TERM_COLOR: always
@@ -47,14 +47,13 @@ jobs:
       uses: jlumbroso/free-disk-space@v1.3.1
       if: ${{ matrix.os == 'ubuntu-latest' }}
 
-    - run: make debug
-    - run: make test
+    - run: make release
+    - run: make test_release
 
-    - run: ls build/debug
     - uses: actions/upload-artifact@v4
       with:
         name: extension-${{ matrix.os }}
-        path: ${{github.workspace}}/build/debug/repository
+        path: ${{github.workspace}}/build/release/repository
         if-no-files-found: error
 
   upload:
