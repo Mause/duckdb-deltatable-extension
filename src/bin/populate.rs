@@ -199,13 +199,14 @@ fn create_record_batch(config: &Config) -> RecordBatch {
     let day = Date32Type::parse("2022-10-04");
 
     let mut lst = ListBuilder::new(Int32Builder::new());
-    lst.values().append_value(1);
+    lst.values().append_values(&[1, 2, 3], &[true, true, true]);
     lst.append(true);
     lst.values().append_value(2);
     lst.append(true);
     lst.values().append_value(3);
     lst.append(true);
     let end_list = lst.finish();
+    assert_eq!(end_list.len(), 3);
 
     if config.with_list {
         assert_eq!(
