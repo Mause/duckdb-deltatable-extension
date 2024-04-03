@@ -50,15 +50,17 @@ install(
 )
 
 add_custom_target(
-	test_data
-    COMMAND $<TARGET_FILE:populate>
-    ARGS "test/simple_test"
+    test_data
+    COMMAND $<TARGET_FILE:populate> ARGS "test/simple_test"
 )
 
 add_test(
-	simple_table_test
-	$<TARGET_FILE:unittest>
-	DEPENDS unittest populate test_data
-	ARGS "--test-dir . [sql]"
+    simple_table_test
+    $<TARGET_FILE:unittest>
+    DEPENDS
+    unittest
+    populate
+    test_data
+    ARGS
+    "--test-dir . [sql]"
 )
-
