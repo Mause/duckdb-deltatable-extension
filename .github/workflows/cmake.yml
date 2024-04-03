@@ -67,6 +67,10 @@ jobs:
       name: netlify
       url: ${{ steps.deployment.outputs.deploy-url }}
 
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -75,6 +79,10 @@ jobs:
           path: _site/latest
           merge-multiple: true
       - run: tree
+      - run: npx netlify-cli status
+        working-directory: ./_site
+      - run: npx netlify-cli build
+        working-directory: ./_site
       - name: Deploy to Netlify
         id: deployment
         uses: nwtgck/actions-netlify@v3.0
@@ -89,8 +97,5 @@ jobs:
           overwrites-pull-request-comment: true
           deploy-message: ${{ github.event.pull_request.title }})
           alias: ${{ github.head_ref }}
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         timeout-minutes: 1
 
