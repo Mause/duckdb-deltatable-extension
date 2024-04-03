@@ -80,12 +80,15 @@ jobs:
         uses: nwtgck/actions-netlify@v3.0
         with:
           publish-dir: './_site'
+          netlify-config-path: ./_site/netlify.toml
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           deploy-message: "Deploy from GitHub Actions"
-          enable-pull-request-comment: false
+          enable-pull-request-comment: true
           enable-commit-comment: true
           overwrites-pull-request-comment: true
+          deploy-message: ${{ github.event.pull_request.title }})
+          alias: ${{ github.head_ref }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
