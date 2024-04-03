@@ -54,11 +54,13 @@ release:
 test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
+POPULATE=build/debug/cargo/build/x86_64-unknown-linux-gnu/debug/populate
+
 test/simple_table:
-	cargo run --bin populate -- test/simple_table
+	$(POPULATE) test/simple_table
 
 test/simple_table_2:
-	cargo run --bin populate -- test/simple_table_2 --with-list
+	$(POPULATE) test/simple_table_2 --with-list
 
 simple_tables: test/simple_table test/simple_table_2
 
