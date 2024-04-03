@@ -51,21 +51,11 @@ release:
 	cmake $(GENERATOR) $(BUILD_FLAGS)  $(CLIENT_FLAGS)  -DCMAKE_BUILD_TYPE=Release -S ./duckdb/ -B build/release && \
 	cmake --build build/release --config Release
 
-test_release: release simple_tables
-	./build/release/test/unittest --test-dir . "[sql]"
+test_release: release
+	cd build/release/extension/deltatable && ctest --output-on-failure
 
-POPULATE=build/debug/extension/deltatable/populate
-
-test/simple_table:
-	$(POPULATE) test/simple_table
-
-test/simple_table_2:
-	$(POPULATE) test/simple_table_2 --with-list
-
-simple_tables: test/simple_table test/simple_table_2
-
-test: debug simple_tables
-	./build/debug/test/unittest --test-dir . "[sql]"
+test: debug
+	cd build/debug/extension/deltatable && ctest --output-on-failure
 
 update:
 	git submodule update --remote --merge
