@@ -1,0 +1,3 @@
+# Include all files in all functions
+[functions]
+  included_files = ["_site/**"]
