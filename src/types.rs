@@ -16,7 +16,13 @@ pub fn map_type(p0: &SchemaDataType) -> Result<LogicalType, Box<dyn std::error::
                 &map_type(p0.value_type())?,
             ))
         }
-        _ => Err(format!("unknown type: {:?}", p0).into()),
+        SchemaDataType::Struct(p0) => {
+            let mut fields = vec![];
+            for field in p0.fields() {
+                fields.push((field.name().as_ref(), map_type(field.data_type())?));
+            }
+            Ok(LogicalType::struct_type(&fields))
+        }
     }
 }
 

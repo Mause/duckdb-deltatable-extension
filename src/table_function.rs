@@ -1,7 +1,7 @@
 use deltalake::open_table;
 use duckdb::ffi::{
     duckdb_data_chunk_get_vector, duckdb_decimal, duckdb_list_vector_get_child, duckdb_malloc,
-    duckdb_vector, duckdb_vector_size,
+    duckdb_struct_vector_get_child, duckdb_vector, duckdb_vector_size,
 };
 use duckdb::vtab::{
     BindInfo, DataChunk, FlatVector, Free, FunctionInfo, InitInfo, Inserter, ListVector,
@@ -147,6 +147,17 @@ fn populate_column(
             let child_vec = unsafe { duckdb_list_vector_get_child(underlying) };
             for (idx, item) in items.elements().iter().enumerate() {
                 populate_column(item, child_vec, offset + idx)?;
+            }
+
+            Ok(())
+        }
+        Field::Group(fields) => {
+            for (idx, (_name, field)) in fields.get_column_iter().enumerate() {
+                populate_column(
+                    field,
+                    unsafe { duckdb_struct_vector_get_child(underlying, idx.try_into().unwrap()) },
+                    idx,
+                )?;
             }
 
             Ok(())

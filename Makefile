@@ -62,7 +62,10 @@ test/simple_table:
 test/simple_table_2:
 	$(POPULATE) test/simple_table_2 --with-list
 
-simple_tables: test/simple_table test/simple_table_2
+test/simple_table_with_struct:
+	$(POPULATE) test/simple_table_with_struct --with-struct
+
+simple_tables: test/simple_table test/simple_table_2 test/simple_table_with_struct
 
 test: debug simple_tables
 	./build/debug/test/unittest --test-dir . "[sql]"
