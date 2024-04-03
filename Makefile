@@ -54,7 +54,7 @@ release:
 test_release: release
 	./build/release/test/unittest --test-dir . "[sql]"
 
-POPULATE=build/debug/cargo/build/x86_64-unknown-linux-gnu/debug/populate
+POPULATE=build/debug/extension/deltatable/populate
 
 test/simple_table:
 	$(POPULATE) test/simple_table
