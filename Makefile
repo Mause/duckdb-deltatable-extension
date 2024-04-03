@@ -41,9 +41,11 @@ clean:
 	rm -rf test/simple_table*
 	cargo clean
 
-debug: build/debug/extension/deltatable/deltatable.duckdb_extension
+OUTPUT=build/debug/extension/deltatable/deltatable.duckdb_extension
 
-build/debug/extension/deltatable/deltatable.duckdb_extension:
+debug: $(OUTPUT)
+
+$(OUTPUT):
 	mkdir -p  build/debug && \
 	cmake $(GENERATOR) $(BUILD_FLAGS) $(CLIENT_FLAGS) -DCMAKE_BUILD_TYPE=Debug -S ./duckdb/ -B build/debug && \
 	cmake --build build/debug --config Debug
@@ -58,10 +60,12 @@ test_release: release
 
 POPULATE=build/debug/extension/deltatable/populate
 
-test/simple_table:
+$(POPULATE): src/bin/populate.rs debug
+
+test/simple_table: $(POPULATE)
 	$(POPULATE) test/simple_table
 
-test/simple_table_2:
+test/simple_table_2: $(POPULATE)
 	$(POPULATE) test/simple_table_2 --with-list
 
 simple_tables: test/simple_table test/simple_table_2
