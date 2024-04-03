@@ -72,7 +72,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           pattern: extension-*
-          path: _site
+          path: _site/latest
           merge-multiple: true
       - run: tree
       - name: Deploy to Netlify
