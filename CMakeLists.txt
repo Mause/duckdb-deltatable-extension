@@ -60,6 +60,7 @@ add_custom_target(
 
 add_test(
     simple_table_test
+    COMMAND 
     $<TARGET_FILE:unittest>
     DEPENDS
     unittest
