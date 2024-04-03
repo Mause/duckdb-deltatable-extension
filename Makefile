@@ -51,7 +51,7 @@ release:
 	cmake $(GENERATOR) $(BUILD_FLAGS)  $(CLIENT_FLAGS)  -DCMAKE_BUILD_TYPE=Release -S ./duckdb/ -B build/release && \
 	cmake --build build/release --config Release
 
-test_release: release
+test_release: release simple_tables
 	./build/release/test/unittest --test-dir . "[sql]"
 
 POPULATE=build/debug/extension/deltatable/populate
