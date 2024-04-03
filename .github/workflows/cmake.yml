@@ -32,6 +32,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
+        fetch-depth: 0
     - uses: mozilla-actions/sccache-action@v0.0.4
     - run: sudo apt install ninja-build build-essential
       if: ${{ matrix.os == 'ubuntu-latest' }}
@@ -73,7 +74,7 @@ jobs:
           pattern: extension-*
           path: _site
           merge-multiple: true
-      - run: ls
+      - run: tree
       - name: Deploy to Netlify
         id: deployment
         uses: nwtgck/actions-netlify@v3.0
