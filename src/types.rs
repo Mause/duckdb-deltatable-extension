@@ -2,20 +2,21 @@ use deltalake::kernel::{DataType as SchemaDataType, PrimitiveType};
 use duckdb::vtab::{LogicalType, LogicalTypeId};
 
 /// Maps Deltalake types to DuckDB types
-pub fn map_type(p0: &SchemaDataType) -> LogicalType {
+pub fn map_type(p0: &SchemaDataType) -> Result<LogicalType, Box<dyn std::error::Error>> {
     match p0 {
-        SchemaDataType::Primitive(name) => LogicalType::new(map_primitive_type(name)),
+        SchemaDataType::Primitive(name) => Ok(LogicalType::new(map_primitive_type(name))),
         SchemaDataType::Array(p0) => {
             //: a sequence of elements, all with the same type
-            LogicalType::list(&map_type(p0.element_type()))
+            Ok(LogicalType::list(&map_type(p0.element_type())?))
         }
         SchemaDataType::Map(p0) => {
             //: a sequence of key-value pairs, with a single key type, and a single value type
-            LogicalType::map(&map_type(p0.key_type()), &map_type(p0.value_type()))
+            Ok(LogicalType::map(
+                &map_type(p0.key_type())?,
+                &map_type(p0.value_type())?,
+            ))
         }
-        _ => {
-            panic!("unknown type: {:?}", p0);
-        }
+        _ => Err(format!("unknown type: {:?}", p0).into()),
     }
 }
 
