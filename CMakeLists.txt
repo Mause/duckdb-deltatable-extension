@@ -59,7 +59,7 @@ add_custom_target(
 )
 
 add_test(
-    simple_table_test
+    NAME simple_table_test
     COMMAND
         $<TARGET_FILE:unittest> DEPENDS unittest populate simple_table
         simple_table_2 ARGS "--test-dir . [sql]"
