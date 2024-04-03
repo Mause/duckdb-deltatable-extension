@@ -28,7 +28,10 @@ pub struct MyBindDataStruct {
 impl Free for MyBindDataStruct {
     fn free(&mut self) {
         unsafe {
-            drop(CString::from_raw(self.filename.cast()));
+            if !self.filename.is_null() {
+                drop(CString::from_raw(self.filename.cast()));
+                self.filename = std::ptr::null_mut();
+            }
         }
     }
 }
@@ -198,6 +201,9 @@ fn read_delta_bind(
     bind_info: &BindInfo,
     my_bind_data: *mut MyBindDataStruct,
 ) -> Result<(), Box<dyn Error>> {
+    unsafe {
+        (*my_bind_data).filename = std::ptr::null_mut();
+    }
     assert_eq!(bind_info.get_parameter_count(), 1);
 
     let string = bind_info.get_parameter(0).to_string();
