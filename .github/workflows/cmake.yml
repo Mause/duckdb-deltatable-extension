@@ -81,6 +81,7 @@ jobs:
         with:
           publish-dir: './_site'
           netlify-config-path: ./_site/netlify.toml
+          functions-dir: '._site/netlify/functions'
           production-branch: main
           github-token: ${{ secrets.GITHUB_TOKEN }}
           enable-pull-request-comment: true
