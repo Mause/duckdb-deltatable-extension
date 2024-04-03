@@ -8,6 +8,7 @@ use duckdb::vtab::{
     LogicalType, LogicalTypeId, VTab,
 };
 use parquet::data_type::{AsBytes, Decimal};
+use std::any::Any;
 use std::error::Error;
 use std::ffi::{CStr, CString};
 use std::fs::File;
@@ -41,7 +42,7 @@ impl Free for MyInitDataStruct {}
 /// # Safety
 ///
 /// .
-fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
+fn read_delta(info: &FunctionInfo, output: &mut DataChunk) -> Result<(), Box<dyn Error>> {
     let bind_data = info.get_bind_data::<MyBindDataStruct>();
     let init_data = info.get_init_data::<MyInitDataStruct>();
 
@@ -51,7 +52,7 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
 
     if let Err(err) = table_result {
         info.set_error(&err.to_string());
-        return;
+        return Ok(());
     }
 
     let table = table_result.unwrap();
@@ -74,7 +75,7 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
                 let underlying =
                     unsafe { duckdb_data_chunk_get_vector(output.get_ptr(), col_idx as u64) };
 
-                populate_column(value, underlying, row_idx);
+                populate_column(value, underlying, row_idx)?;
             }
             row_idx += 1;
 
@@ -91,79 +92,51 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) {
         (*init_data).done = true;
     }
     output.set_len(row_idx);
+
+    Ok(())
 }
 
-fn populate_column(value: &Field, underlying: duckdb_vector, row_idx: usize) {
+fn populate_column(
+    value: &Field,
+    underlying: duckdb_vector,
+    row_idx: usize,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut flat_vec = FlatVector::from(underlying);
 
     match value {
-        Field::Int(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Bool(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Long(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Date(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Float(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Byte(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Short(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::UByte(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::UShort(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::UInt(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::ULong(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Double(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
+        Field::Int(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Bool(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Long(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Date(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Float(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Byte(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Short(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::UByte(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::UShort(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::UInt(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::ULong(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Double(v) => assign(&mut flat_vec, row_idx, *v),
         Field::Decimal(v) => match v {
             Decimal::Int64 {
                 value,
                 scale,
                 precision,
-            } => {
-                assign(
-                    &mut flat_vec,
-                    row_idx,
-                    create_decimal(
-                        value[0] as i64,
-                        value[1] as u64,
-                        (*precision).try_into().expect("precision"),
-                        (*scale).try_into().expect("scale"),
-                    ),
-                );
-            }
+            } => assign(
+                &mut flat_vec,
+                row_idx,
+                create_decimal(
+                    value[0] as i64,
+                    value[1] as u64,
+                    (*precision).try_into().expect("precision"),
+                    (*scale).try_into().expect("scale"),
+                ),
+            ),
             _ => todo!("decimal"),
         },
-        Field::TimestampMillis(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::TimestampMicros(v) => {
-            assign(&mut flat_vec, row_idx, *v);
-        }
-        Field::Bytes(v) => {
-            set_bytes(&mut flat_vec, row_idx, v.as_bytes());
-        }
-        Field::Str(v) => {
-            set_bytes(&mut flat_vec, row_idx, v.as_bytes());
-        }
+        Field::TimestampMillis(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::TimestampMicros(v) => assign(&mut flat_vec, row_idx, *v),
+        Field::Bytes(v) => set_bytes(&mut flat_vec, row_idx, v.as_bytes()),
+        Field::Str(v) => set_bytes(&mut flat_vec, row_idx, v.as_bytes()),
         Field::ListInternal(items) => {
             let mut from = ListVector::from(underlying);
             let offset = from.len();
@@ -173,11 +146,13 @@ fn populate_column(value: &Field, underlying: duckdb_vector, row_idx: usize) {
 
             let child_vec = unsafe { duckdb_list_vector_get_child(underlying) };
             for (idx, item) in items.elements().iter().enumerate() {
-                populate_column(item, child_vec, offset + idx);
+                populate_column(item, child_vec, offset + idx)?;
             }
+
+            Ok(())
         }
         // TODO: support more types
-        _ => todo!("unsupported type: {}", value),
+        _ => Err(format!("unsupported type: {}: {:?}", value, value.type_id()).into()),
     }
 }
 
@@ -196,22 +171,33 @@ fn malloc_c<T>() -> *mut T {
     unsafe { duckdb_malloc(size_of::<T>()).cast() }
 }
 
-fn set_bytes(result_vector: &mut FlatVector, row_idx: usize, bytes: &[u8]) {
+fn set_bytes(
+    result_vector: &mut FlatVector,
+    row_idx: usize,
+    bytes: &[u8],
+) -> Result<(), Box<dyn Error>> {
     let cs = CString::new(bytes).unwrap();
 
     assert_eq!(result_vector.logical_type().id(), LogicalTypeId::Varchar);
 
     result_vector.insert(row_idx, cs);
+
+    Ok(())
 }
 
-fn assign<T>(flat_vec: &mut FlatVector, row_idx: usize, v: T) {
+fn assign<T>(flat_vec: &mut FlatVector, row_idx: usize, v: T) -> Result<(), Box<dyn Error>> {
     flat_vec.as_mut_slice::<T>()[row_idx] = v;
+
+    Ok(())
 }
 
 /// # Safety
 ///
 /// .
-fn read_delta_bind(bind_info: &BindInfo, my_bind_data: *mut MyBindDataStruct) {
+fn read_delta_bind(
+    bind_info: &BindInfo,
+    my_bind_data: *mut MyBindDataStruct,
+) -> Result<(), Box<dyn Error>> {
     assert_eq!(bind_info.get_parameter_count(), 1);
 
     let string = bind_info.get_parameter(0).to_string();
@@ -220,19 +206,21 @@ fn read_delta_bind(bind_info: &BindInfo, my_bind_data: *mut MyBindDataStruct) {
     let handle = RUNTIME.block_on(open_table(filename));
     if let Err(err) = handle {
         bind_info.set_error(&err.to_string());
-        return;
+        return Ok(());
     }
 
     let table = handle.unwrap();
     let schema = table.schema().expect("no schema");
     for field in schema.fields() {
-        let typ = map_type(field.data_type());
+        let typ = map_type(field.data_type())?;
         bind_info.add_result_column(field.name(), typ);
     }
 
     unsafe {
         (*my_bind_data).filename = CString::new(filename).expect("c string").into_raw();
     }
+
+    Ok(())
 }
 
 lazy_static::lazy_static! {
@@ -247,9 +235,7 @@ impl VTab for DeltaFunction {
     type BindData = MyBindDataStruct;
 
     fn bind(bind: &BindInfo, data: *mut Self::BindData) -> duckdb::Result<(), Box<dyn Error>> {
-        read_delta_bind(bind, data);
-
-        Ok(())
+        read_delta_bind(bind, data)
     }
 
     fn init(_init: &InitInfo, _data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
@@ -257,9 +243,7 @@ impl VTab for DeltaFunction {
     }
 
     fn func(func: &FunctionInfo, output: &mut DataChunk) -> duckdb::Result<(), Box<dyn Error>> {
-        read_delta(func, output);
-
-        Ok(())
+        read_delta(func, output)
     }
 
     fn parameters() -> Option<Vec<LogicalType>> {
