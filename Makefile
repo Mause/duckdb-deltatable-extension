@@ -41,7 +41,9 @@ clean:
 	rm -rf test/simple_table*
 	cargo clean
 
-debug:
+debug: build/debug/extension/deltatable.duckdb_extension
+
+build/debug/extension/deltatable.duckdb_extension:
 	mkdir -p  build/debug && \
 	cmake $(GENERATOR) $(BUILD_FLAGS) $(CLIENT_FLAGS) -DCMAKE_BUILD_TYPE=Debug -S ./duckdb/ -B build/debug && \
 	cmake --build build/debug --config Debug
