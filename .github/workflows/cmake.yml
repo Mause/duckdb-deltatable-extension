@@ -54,7 +54,7 @@ jobs:
     - uses: actions/upload-artifact@v4
       with:
         name: extension-${{ matrix.os }}
-        path: ${{github.workspace}}/build/debug/repository
+        path: ${{github.workspace}}/build/release/repository
         if-no-files-found: error
 
   upload:
