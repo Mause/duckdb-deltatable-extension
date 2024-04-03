@@ -68,6 +68,7 @@ jobs:
       url: ${{ steps.deployment.outputs.deploy-url }}
 
     steps:
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           pattern: extension-*
