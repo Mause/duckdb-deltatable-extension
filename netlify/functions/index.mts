@@ -1,8 +1,11 @@
 import fs from "fs/promises";
 
 export default async () => {
-  const files = await fs.readdir(".");
-  return new Response(JSON.stringify(files), {
+  return new Response(JSON.stringify({
+	  files: await fs.readdir("."),
+	  parent: await fs.readdir(".."),
+	  grandparent: await fs.readdir("../.."),
+  }), {
     headers : {"content-type" : "application/json"},
   });
 };
