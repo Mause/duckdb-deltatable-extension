@@ -52,10 +52,10 @@ release:
 	cmake --build build/release --config Release
 
 test_release: release
-	cd build/release/extension/deltatable && ctest --output-on-failure
+	cd build/release/extension/deltatable && ctest --output-on-failure --verbose
 
 test: debug
-	cd build/debug/extension/deltatable && ctest --output-on-failure
+	cd build/debug/extension/deltatable && ctest --output-on-failure --verbose
 
 update:
 	git submodule update --remote --merge

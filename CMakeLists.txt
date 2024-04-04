@@ -57,9 +57,17 @@ add_custom_target(
     simple_table_2
     COMMAND $<TARGET_FILE:populate> ARGS "test/simple_table_2 --with-list"
 )
-
 add_test(
-    NAME simple_table_test
-    COMMAND $<TARGET_FILE:unittest> --test-dir . [sql]
+    NAME simple_test_with_list
+    COMMAND
+        $<TARGET_FILE:unittest> --test-dir ${CMAKE_CURRENT_SOURCE_DIR}
+        test/sql/test_with_list.test
+    COMMAND_EXPAND_LISTS
+)
+add_test(
+    NAME simple_test
+    COMMAND
+        $<TARGET_FILE:unittest> --test-dir ${CMAKE_CURRENT_SOURCE_DIR}
+        test/sql/test.test
     COMMAND_EXPAND_LISTS
 )
