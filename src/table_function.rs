@@ -38,7 +38,9 @@ impl Free for MyBindDataStruct {
 
 #[repr(C)]
 pub struct MyInitDataStruct {
-    done: bool, // TODO: support more than *vector size* rows
+    done: bool,
+    file_idx: usize,
+    spent: usize,
 }
 impl Free for MyInitDataStruct {}
 
@@ -62,8 +64,9 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) -> Result<(), Box<dyn
 
     let root_dir = Path::new(filename.to_str().unwrap());
     let mut row_idx: usize = 0;
-    for pq_filename in table.get_files_iter().unwrap() {
+    for (file_idx, pq_filename) in table.get_files_iter().unwrap().enumerate() {
         unsafe {
+            (*init_data).file_idx = file_idx;
             if (*init_data).done {
                 break;
             }
@@ -92,7 +95,7 @@ fn read_delta(info: &FunctionInfo, output: &mut DataChunk) -> Result<(), Box<dyn
         }
     }
     unsafe {
-        (*init_data).done = true;
+        (*init_data).spent += row_idx;
     }
     output.set_len(row_idx);
 
@@ -244,7 +247,13 @@ impl VTab for DeltaFunction {
         read_delta_bind(bind, data)
     }
 
-    fn init(_init: &InitInfo, _data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
+    fn init(_init: &InitInfo, data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
+        unsafe {
+            (*data).done = true;
+            (*data).file_idx = 0;
+            (*data).spent = 0;
+        }
+
         Ok(())
     }
 
