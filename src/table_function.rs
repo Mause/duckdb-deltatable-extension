@@ -240,15 +240,15 @@ impl VTab for DeltaFunction {
     type InitData = MyInitDataStruct;
     type BindData = MyBindDataStruct;
 
-    fn bind(bind: &BindInfo, data: *mut Self::BindData) -> duckdb::Result<(), Box<dyn Error>> {
+    unsafe fn bind(bind: &BindInfo, data: *mut Self::BindData) -> duckdb::Result<(), Box<dyn Error>> {
         read_delta_bind(bind, data)
     }
 
-    fn init(_init: &InitInfo, _data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
+    unsafe fn init(_init: &InitInfo, _data: *mut Self::InitData) -> duckdb::Result<(), Box<dyn Error>> {
         Ok(())
     }
 
-    fn func(func: &FunctionInfo, output: &mut DataChunk) -> duckdb::Result<(), Box<dyn Error>> {
+    unsafe fn func(func: &FunctionInfo, output: &mut DataChunk) -> duckdb::Result<(), Box<dyn Error>> {
         read_delta(func, output)
     }
 
