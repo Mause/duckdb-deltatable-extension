@@ -8,7 +8,7 @@ rust-version = "1.72.0"
 
 [dependencies]
 deltalake = { version = "0.17.1", features = [], default-features = false }
-tokio = { version = "1.37.0", features=['rt'], default-features = false }
+tokio = { version = "1.39.2", features=['rt'], default-features = false }
 parquet = { version = "51.0.0", features=["snap", "brotli", "flate2", "lz4", "zstd", "base64"], default-features = false }
 lazy_static = "1.4.0"
 log = "0.4.21"
