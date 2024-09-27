@@ -32,7 +32,7 @@ jobs:
       with:
         submodules: recursive
         fetch-depth: 0
-    - uses: mozilla-actions/sccache-action@v0.0.4
+    - uses: mozilla-actions/sccache-action@v0.0.6
     - run: sudo apt install ninja-build build-essential
       if: ${{ matrix.os == 'ubuntu-latest' }}
     - run: brew install ninja
