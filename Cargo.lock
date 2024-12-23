@@ -607,7 +607,18 @@ checksum = "a1a0b1dbcc8ae29329621f8d4f0d835787c1c38bb1401979b49d13b0b305ff68"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
- "brotli-decompressor",
+ "brotli-decompressor 2.3.4",
+]
+
+[[package]]
+name = "brotli"
+version = "7.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc97b8f16f944bba54f0433f07e30be199b6dc2bd25937444bbad560bcea29bd"
+dependencies = [
+ "alloc-no-stdlib",
+ "alloc-stdlib",
+ "brotli-decompressor 4.0.1",
 ]
 
 [[package]]
@@ -615,6 +626,16 @@ name = "brotli-decompressor"
 version = "2.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b6561fd3f895a11e8f72af2cb7d22e08366bebc2b6b57f7744c4bda27034744"
+dependencies = [
+ "alloc-no-stdlib",
+ "alloc-stdlib",
+]
+
+[[package]]
+name = "brotli-decompressor"
+version = "4.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9a45bd2e4095a8b518033b128020dd4a55aab1c0a381ba4404a472630f4bc362"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -884,7 +905,7 @@ dependencies = [
  "duckdb-loadable-macros",
  "lazy_static",
  "log",
- "parquet 51.0.0",
+ "parquet 54.0.0",
  "pretty_env_logger",
  "tokio",
 ]
@@ -1157,6 +1178,12 @@ dependencies = [
  "ahash 0.8.6",
  "allocator-api2",
 ]
+
+[[package]]
+name = "hashbrown"
+version = "0.15.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
 
 [[package]]
 name = "hashlink"
@@ -1596,7 +1623,7 @@ dependencies = [
  "arrow-schema 50.0.0",
  "arrow-select 50.0.0",
  "base64 0.21.0",
- "brotli",
+ "brotli 3.3.4",
  "bytes",
  "chrono",
  "flate2",
@@ -1618,18 +1645,18 @@ dependencies = [
 
 [[package]]
 name = "parquet"
-version = "51.0.0"
+version = "54.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "096795d4f47f65fd3ee1ec5a98b77ab26d602f2cc785b0e4be5443add17ecc32"
+checksum = "3334c50239d9f4951653d84fa6f636da86f53742e5e5849a30fbe852f3ff4383"
 dependencies = [
  "ahash 0.8.6",
  "base64 0.22.0",
- "brotli",
+ "brotli 7.0.0",
  "bytes",
  "chrono",
  "flate2",
  "half",
- "hashbrown 0.14.3",
+ "hashbrown 0.15.2",
  "lz4_flex",
  "num",
  "num-bigint",
@@ -1639,6 +1666,7 @@ dependencies = [
  "thrift",
  "twox-hash",
  "zstd",
+ "zstd-sys",
 ]
 
 [[package]]
