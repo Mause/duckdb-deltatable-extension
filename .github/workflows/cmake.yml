@@ -51,7 +51,7 @@ jobs:
     - run: make test
 
     - run: ls build/debug
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: extension-${{ matrix.os }}
         path: ${{github.workspace}}/build/debug/repository/**/deltatable.duckdb_extension
@@ -68,7 +68,7 @@ jobs:
       url: ${{ steps.deployment.outputs.deploy-url }}
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           pattern: extension-*
           path: _site/latest
